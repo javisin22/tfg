@@ -1,0 +1,62 @@
+'use client';
+
+import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { User, Lock } from 'lucide-react';
+
+export default function Login() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Username: ', username);
+    console.log('Password ', password);
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="absolute top-0 right-0 mt-8 mr-8 text-lg font-bold">
+        <Link href="/signup" className="text-white hover:underline">
+          Sign Up
+        </Link>
+      </div>
+
+      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 mt-28">
+        <Image src="/logo.jpeg" alt="Logo" width={150} height={150} />
+      </div>
+      <form onSubmit={handleLogin} className="flex flex-col items-center w-80 mt-24">
+        <div className="mb-2 flex items-center w-full">
+          <User className="mr-2" />
+          <input
+            type="text"
+            placeholder="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="p-2 border rounded w-full"
+          />
+        </div>
+        <div className="mb-2 flex items-center w-full">
+          <Lock className="mr-2" />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="p-2 border rounded w-full"
+          />
+        </div>
+        <button
+          type="submit"
+          className="mt-12 py-3 px-16 bg-blue-500 text-white rounded hover:bg-blue-600 font-bold"
+        >
+          Login
+        </button>
+        <div className='pt-2 text-sm hover:underline'>
+          <Link href={"/passwordRecovery"}>Forgot your password?</Link>
+        </div>
+      </form>
+    </div>
+  );
+}

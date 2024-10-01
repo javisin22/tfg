@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: theme('colors.lightBackground');
+  color: theme('colors.lightForeground');
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: theme('colors.darkBackground');
+    color: theme('colors.darkForeground');
+  }
+}
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+}
