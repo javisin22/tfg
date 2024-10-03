@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { User, Mail, Lock } from 'lucide-react';
 import { useState } from 'react';
+import { signup } from '@/login/actions';
 
 export default function Signup() {
   const [username, setUsername] = useState('');
@@ -12,48 +13,48 @@ export default function Signup() {
   const [repeatPassword, setRepeatPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSignup = (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleSignup = (e: React.FormEvent) => {
+  //   e.preventDefault();
 
-    // Username validation
-    if (!username) {
-      setError('Username cannot be empty');
-      return;
-    }
+  //   // Username validation
+  //   if (!username) {
+  //     setError('Username cannot be empty');
+  //     return;
+  //   }
 
-    // Email validation
-    if (!email.includes('@')) {
-      setError('Please enter a valid email address');
-      return;
-    }
+  //   // Email validation
+  //   if (!email.includes('@')) {
+  //     setError('Please enter a valid email address');
+  //     return;
+  //   }
 
-    // Password validation
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      setError(
-        'Password must be at least 8 characters long, contain at least 1 capital letter and 1 digit'
-      );
-      return;
-    }
+  //   // Password validation
+  //   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+  //   if (!passwordRegex.test(password)) {
+  //     setError(
+  //       'Password must be at least 8 characters long, contain at least 1 capital letter and 1 digit'
+  //     );
+  //     return;
+  //   }
 
-    // Repeat password validation
-    if (password !== repeatPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+  //   // Repeat password validation
+  //   if (password !== repeatPassword) {
+  //     setError('Passwords do not match');
+  //     return;
+  //   }
 
-    setError('');
-    console.log('Username: ', username);
-    console.log('Email: ', email);
-    console.log('Password: ', password);
-    console.log('Repeat Password: ', repeatPassword);
-    // Proceed with account creation logic
-  };
+  //   setError('');
+  //   console.log('Username: ', username);
+  //   console.log('Email: ', email);
+  //   console.log('Password: ', password);
+  //   console.log('Repeat Password: ', repeatPassword);
+  //   // Proceed with account creation logic
+  // };
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen">
       <div className="absolute top-0 right-0 mt-8 mr-8 text-lg font-bold">
-        <Link href="/" className="text-white hover:underline">
+        <Link href="/login" className="text-white hover:underline">
           Log In
         </Link>
       </div>
@@ -61,7 +62,7 @@ export default function Signup() {
       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 mt-28">
         <Image src="/logo.jpeg" alt="Logo" width={150} height={150} />
       </div>
-      <form onSubmit={handleSignup} className="flex flex-col items-center w-full max-w-2xl mt-24">
+      <form className="flex flex-col items-center w-full max-w-2xl mt-24">
         <div className="flex w-full">
           <div className="flex flex-col items-center w-1/2 pr-4">
             <div className="mb-2 flex items-center w-full">
@@ -112,6 +113,7 @@ export default function Signup() {
         {error && <div className="text-red-500 mt-2 w-full text-center">{error}</div>}
         <button
           type="submit"
+          formAction={signup}
           className="mt-12 py-3 px-16 bg-blue-500 text-white rounded hover:bg-blue-600 font-bold"
         >
           Create Account
