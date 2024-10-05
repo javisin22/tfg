@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
-import Feed from '../components/Feed/feed';
 
 export default async function Home() {
   const supabase = createClient();
@@ -9,9 +8,13 @@ export default async function Home() {
     data: { session },
   } = await supabase.auth.getSession();
 
+  // If the user is not logged in, redirect to the login page
   if (!session) {
     redirect('/login');
   }
 
-  return <Feed />;
+  // If the user is logged in, render to the feed page.
+  // The redirection is to /home instead of the default '/' route
+  // because of the layout structure required it to be so
+  redirect('/home');  
 }
