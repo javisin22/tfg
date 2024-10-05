@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { User, Eye } from 'lucide-react';
 
 export default function SettingsScreen() {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,64 +14,100 @@ export default function SettingsScreen() {
         <div className="border rounded-lg shadow-lg p-6">
           <h2 className="text-2xl font-bold text-primary">Account Settings</h2>
           <div className="space-y-4 mt-4">
+            <div className="flex items-center space-x-4">
+              {/* Avatar Section */}
+              <User className="w-16 h-16 text-primary rounded-full border-2 border-gray-300" />
+              {/* Change Avatar Button */}
+              <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Change avatar</button>
+            </div>
+
             {/* <!-- Username Section --> */}
             <div className="space-y-2">
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="username" className="block text-sm font-medium text-white">
                 Username
               </label>
-              <div className="flex space-x-2">
-                <input
-                  id="username"
-                  placeholder="Current username"
-                  className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-                <button className="p-2 bg-primary text-white rounded-lg hover:bg-primary-dark">Change</button>
-              </div>
+              <input
+                id="username"
+                placeholder="Current username"
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
             </div>
 
             {/* <!-- Email Section --> */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-white">
                 Email
               </label>
-              <div className="flex space-x-2">
+              <input
+                id="email"
+                type="email"
+                placeholder="Current email"
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+
+            {/* Biography Section */}
+            <div className="space-y-2">
+              <label htmlFor="biography" className="block text-sm font-medium text-white">
+                Biography
+              </label>
+              <input
+                id="biography"
+                placeholder="Current biography"
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+
+            {/* Save Changes Button */}
+            <div className="flex justify-start pt-6">
+              <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save Changes</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Security Card */}
+        <div className="border rounded-lg shadow-lg p-6">
+          <h2 className="text-2xl font-bold text-primary">Security</h2>
+          <div className="space-y-4 mt-4">
+            {/* Current Password Section */}
+            <div className="space-y-2">
+              <label htmlFor="current-password" className="block text-sm font-medium text-white">
+                Current Password
+              </label>
+              <div className="relative">
                 <input
-                  id="email"
-                  type="email"
-                  placeholder="Current email"
-                  className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  id="current-password"
+                  type="password"
+                  placeholder="Current password"
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
-                <button className="p-2 bg-primary text-white rounded-lg hover:bg-primary-dark">Change</button>
+                <button className="absolute right-0 top-0 p-2 text-gray-500 hover:text-gray-700">
+                  <Eye />
+                </button>
               </div>
             </div>
 
-            {/* <!-- Password Section --> */}
+            {/* New Password Section */}
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
+              <label htmlFor="new-password" className="block text-sm font-medium text-white">
+                New Password
               </label>
-              <div className="flex space-x-2">
-                <div className="relative flex-1">
-                  <input
-                    id="password"
-                    type="password"
-                    placeholder="New password"
-                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                  <button className="absolute right-0 top-0 p-2 text-gray-500 hover:text-gray-700">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <button className="p-2 bg-primary text-white rounded-lg hover:bg-primary-dark">Change</button>
+              <div className="relative">
+                <input
+                  id="new-password"
+                  type="password"
+                  placeholder="New password"
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <button className="absolute right-0 top-0 p-2 text-gray-500 hover:text-gray-700">
+                  <Eye />
+                </button>
               </div>
+            </div>
+
+            {/* Change Password Button */}
+            <div className="flex justify-start pt-6">
+              <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Change Password</button>
             </div>
           </div>
         </div>
@@ -81,10 +118,10 @@ export default function SettingsScreen() {
           <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <label htmlFor="notifications" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="notifications" className="block text-sm font-medium text-white">
                   Enable Notifications
                 </label>
-                <p className="text-sm text-gray-500">Receive notifications about your activity</p>
+                <p className="text-sm text-gray-300">Receive notifications about your activity</p>
               </div>
               <input
                 type="checkbox"
@@ -96,23 +133,14 @@ export default function SettingsScreen() {
           </div>
         </div>
 
-        {/* <!-- Privacy Card --> */}
-        <div className="border rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-primary">Privacy</h2>
-          <div className="space-y-4 mt-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <label htmlFor="private-profile" className="block text-sm font-medium text-gray-700">
-                  Private Profile
-                </label>
-                <p className="text-sm text-gray-500">Only approved followers can see your posts</p>
-              </div>
-              <input
-                type="checkbox"
-                id="private-profile"
-                className="h-5 w-5 rounded-full border-gray-300 text-primary focus:ring-primary"
-              />
-            </div>
+        {/* Delete Account */}
+        <div className="border rounded-lg shadow-lg p-6 mt-6">
+          <h2 className="text-2xl font-bold text-white">Delete Account</h2>
+          <p className="text-sm text-white mt-2">
+            Once you delete this account, there's no going back. Please be certain.
+          </p>
+          <div className="flex justify-start mt-4">
+            <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete Account</button>
           </div>
         </div>
       </div>
