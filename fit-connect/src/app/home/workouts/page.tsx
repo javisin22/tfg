@@ -1,6 +1,6 @@
 'use client';
 
-// MISSING--> view full workout screen
+import Link from 'next/link';
 
 export default function WorkoutsScreen() {
   const workouts = [
@@ -57,7 +57,9 @@ export default function WorkoutsScreen() {
               </li>
             ))}
           </ul>
-          <button className="bg-gray-500 text-white font-medium py-2 px-4 rounded mt-4">View full workout</button>
+          <Link href={`/home/workouts/${workout.id}`}>
+            <button className="bg-gray-500 text-white font-medium py-2 px-4 rounded mt-4">View full workout</button>
+          </Link>
         </div>
       ))}
     </div>
