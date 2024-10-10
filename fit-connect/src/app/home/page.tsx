@@ -8,7 +8,7 @@ function CreatePostScreen({ onClose }: { onClose: () => void }) {
   const [description, setDescription] = useState<string>('');
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files[0];
+    const file = e.target.files ? e.target.files[0] : null;
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => setImage(e.target?.result as string);
@@ -53,9 +53,11 @@ function CreatePostScreen({ onClose }: { onClose: () => void }) {
         {/* ) */}
       </div>
 
-      
       <h3 className="text-lg font-semibold mb-2 mt-6">Description</h3>
-      <textarea className="w-full border border-gray-300 p-2 rounded-md mb-4 text-black" placeholder="What's on your mind?" />
+      <textarea
+        className="w-full border border-gray-300 p-2 rounded-md mb-4 text-black"
+        placeholder="What's on your mind?"
+      />
       <div className="flex justify-end space-x-2">
         <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded" onClick={onClose}>
           Cancel
