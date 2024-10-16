@@ -10,7 +10,7 @@ export default function ProfileScreen() {
   const [username, setUsername] = useState('');
   const [userInfo, setUserInfo] = useState(null);
   const [userPosts, setUserPosts] = useState<Post[]>([]);
-  const [editingPost, setEditingPost] = useState<Post>();
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
 
   useEffect(() => {
     async function fetchUserInfo() {
@@ -18,7 +18,6 @@ export default function ProfileScreen() {
         const res = await fetch('/api/user/info');
         const { user } = await res.json();
         setUserInfo(user);
-        // console.log('userInfo:', user);
       } catch (error) {
         console.error('Error fetching user info:', error);
       }
@@ -29,7 +28,6 @@ export default function ProfileScreen() {
         const res = await fetch('/api/user/posts/getPosts');
         const { posts } = await res.json();
         setUserPosts(posts);
-        console.log('userPosts:', posts);
       } catch (error) {
         console.error('Error fetching user posts:', error);
       }
@@ -44,9 +42,25 @@ export default function ProfileScreen() {
     setEditingPost(post);
   };
 
-  const handleUpdatePost = (updatedPost: Post) => {
-    setUserPosts(userPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post)));
-    setEditingPost(undefined);
+  const handleUpdatePost = async (updatedPost: Post) => {
+    try {
+      const res = await fetch(`/api/user/posts/update/${updatedPost.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedPost),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update post');
+      }
+
+      setUserPosts(userPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post)));
+      setEditingPost(null);
+    } catch (error) {
+      console.error('Error updating post:', error);
+    }
   };
 
   const handleDeletePost = async (postId: string) => {
@@ -56,11 +70,15 @@ export default function ProfileScreen() {
       });
       const data = await res.json();
       console.log('data:', data);
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to delete post');
+      }
+
+      setUserPosts(userPosts.filter((post) => post.id !== postId));
     } catch (error) {
       console.error('Error deleting post:', error);
     }
-
-    setUserPosts(userPosts.filter((post) => post.id !== postId));
   };
 
   return (
@@ -68,7 +86,6 @@ export default function ProfileScreen() {
       {/* Profile Section */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex flex-col items-center space-y-4">
-          {/* <img src="/placeholder.svg?height=96&width=96" alt="Profile Picture" className="h-24 w-24 rounded-full" /> */}
           {userInfo?.profilePicture ? (
             <Image
               src={userInfo.profilePicture}
@@ -82,7 +99,6 @@ export default function ProfileScreen() {
           )}
           <h2 className="text-2xl text-gray-500 font-bold text-primary">{username}</h2>
           <p className="text-sm text-gray-500">{userInfo?.biography}</p>
-          {/* 🎃 FALTA API: posts.lenght, followers, following */}
           <div className="flex space-x-6">
             <div className="text-center">
               <p className="text-xl font-semibold text-primary text-gray-400">{userPosts.length}</p>
@@ -119,7 +135,8 @@ export default function ProfileScreen() {
                 <User className="h-10 w-10 rounded-full text-gray-700" />
               )}
               <div>
-                <p className="text-sm font-medium text-primary">John Doe</p>
+                <p className="text-sm font-medium text-black">{username}</p>
+                {/* 🎃 Cambiar tema de la fecha de publicación (atributo 'postedAt' en cada post de userPosts) */}
                 <p className="text-xs text-gray-500">2 hours ago</p>
               </div>
             </div>
@@ -132,7 +149,7 @@ export default function ProfileScreen() {
                 onClick={() => handleDeletePost(post.id)}
               >
                 <Trash2 className="h-4 w-4 text-gray-600" />
-              </button>{' '}
+              </button>
             </div>
           </div>
           <Image src={post.media} alt="Post" className="rounded-md mb-4" width={400} height={300} />
@@ -158,12 +175,15 @@ export default function ProfileScreen() {
             <p className="text-sm text-gray-500">
               Make changes to your post here. Click save when you're done.
             </p>
+            {/* 🎃 Settear un mínimo y máximo del textarea */}
             <textarea
               className="w-full h-24 p-2 border text-black border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              value={editingPost.content}
-              onChange={(e) => setEditingPost({ ...editingPost, content: e.target.value })}
+              value={editingPost.description}
+              onChange={(e) => setEditingPost({ ...editingPost, description: e.target.value })}
             />
-            <img src={editingPost.image} alt="Post" className="rounded-md" />
+            <div className="flex justify-center items-center">
+              <Image src={editingPost.media} alt="Post" className=" rounded-md" width={400} height={300} />
+            </div>
             <div className="flex justify-end space-x-2">
               <button
                 className="px-4 py-2 text-sm font-medium text-black bg-red-500 rounded-lg hover:bg-red-400"
