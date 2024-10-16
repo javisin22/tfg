@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   try {
     const userData = await getUserInfo();
-    console.log('userData', userData);
+    // console.log('userData', userData);
     return NextResponse.json({ user: userData }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

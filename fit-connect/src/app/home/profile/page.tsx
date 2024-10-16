@@ -1,45 +1,65 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Heart, MessageSquareMore, Trash2, Pencil } from 'lucide-react';
+import Image from 'next/image';
+import Cookies from 'js-cookie';
+import { Post } from '../../../types';
 
 export default function ProfileScreen() {
-  const [userPosts, setUserPosts] = useState([
-    {
-      id: 1,
-      image: '/placeholder.svg?height=300&width=400',
-      content: 'Just crushed my morning workout! 💪 #MorningMotivation',
-      likes: 42,
-      comments: 7,
-    },
-    {
-      id: 2,
-      image: '/placeholder.svg?height=300&width=400',
-      content: 'New personal best in deadlifts today! 🏋️‍♂️ #StrengthTraining',
-      likes: 38,
-      comments: 5,
-    },
-    {
-      id: 3,
-      image: '/placeholder.svg?height=300&width=400',
-      content: 'Beautiful day for a run by the beach 🏃‍♀️🌊 #CardioTime',
-      likes: 56,
-      comments: 9,
-    },
-  ]);
+  const [username, setUsername] = useState('');
+  const [userInfo, setUserInfo] = useState(null);
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [editingPost, setEditingPost] = useState<Post>();
 
-  const [editingPost, setEditingPost] = useState(null);
+  useEffect(() => {
+    async function fetchUserInfo() {
+      try {
+        const res = await fetch('/api/user/info');
+        const { user } = await res.json();
+        setUserInfo(user);
+        // console.log('userInfo:', user);
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
 
-  const handleEditPost = (post) => {
+    async function fetchUserPosts() {
+      try {
+        const res = await fetch('/api/user/posts/getPosts');
+        const { posts } = await res.json();
+        setUserPosts(posts);
+        console.log('userPosts:', posts);
+      } catch (error) {
+        console.error('Error fetching user posts:', error);
+      }
+    }
+
+    fetchUserInfo();
+    fetchUserPosts();
+    setUsername(Cookies.get('username') || '');
+  }, []);
+
+  const handleEditPost = (post: Post) => {
     setEditingPost(post);
   };
 
-  const handleUpdatePost = (updatedPost) => {
+  const handleUpdatePost = (updatedPost: Post) => {
     setUserPosts(userPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post)));
-    setEditingPost(null);
+    setEditingPost(undefined);
   };
 
-  const handleDeletePost = (postId) => {
+  const handleDeletePost = async (postId: string) => {
+    try {
+      const res = await fetch(`/api/user/posts/deletePost/${postId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      console.log('data:', data);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    }
+
     setUserPosts(userPosts.filter((post) => post.id !== postId));
   };
 
@@ -49,9 +69,20 @@ export default function ProfileScreen() {
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex flex-col items-center space-y-4">
           {/* <img src="/placeholder.svg?height=96&width=96" alt="Profile Picture" className="h-24 w-24 rounded-full" /> */}
-          <User className="h-24 w-24 rounded-full text-gray-700" />
-          <h2 className="text-2xl text-gray-500 font-bold text-primary">John Doe</h2>
-          <p className="text-sm text-gray-500">Fitness enthusiast | Runner | Weightlifter</p>
+          {userInfo?.profilePicture ? (
+            <Image
+              src={userInfo.profilePicture}
+              alt="Profile Picture"
+              width={96}
+              height={96}
+              className="h-24 w-24 rounded-full text-gray-700"
+            />
+          ) : (
+            <User className="h-24 w-24 rounded-full text-gray-700" />
+          )}
+          <h2 className="text-2xl text-gray-500 font-bold text-primary">{username}</h2>
+          <p className="text-sm text-gray-500">{userInfo?.biography}</p>
+          {/* 🎃 FALTA API: posts.lenght, followers, following */}
           <div className="flex space-x-6">
             <div className="text-center">
               <p className="text-xl font-semibold text-primary text-gray-400">{userPosts.length}</p>
@@ -76,7 +107,17 @@ export default function ProfileScreen() {
         <div key={post.id} className="bg-white rounded-lg shadow p-6 space-y-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <img src="/placeholder.svg?height=40&width=40" alt="John Doe" className="h-10 w-10 rounded-full" />
+              {userInfo?.profilePicture ? (
+                <Image
+                  src={userInfo.profilePicture}
+                  alt="Profile Picture"
+                  width={40}
+                  height={40}
+                  className="h-10 w-10 rounded-full text-gray-700"
+                />
+              ) : (
+                <User className="h-10 w-10 rounded-full text-gray-700" />
+              )}
               <div>
                 <p className="text-sm font-medium text-primary">John Doe</p>
                 <p className="text-xs text-gray-500">2 hours ago</p>
@@ -86,20 +127,23 @@ export default function ProfileScreen() {
               <button className="p-2 rounded-full hover:bg-gray-200" onClick={() => handleEditPost(post)}>
                 <Pencil className="h-4 w-4 text-gray-600" />
               </button>
-              <button className="p-2 rounded-full hover:bg-gray-200" onClick={() => handleDeletePost(post.id)}>
+              <button
+                className="p-2 rounded-full hover:bg-gray-200"
+                onClick={() => handleDeletePost(post.id)}
+              >
                 <Trash2 className="h-4 w-4 text-gray-600" />
-              </button>
+              </button>{' '}
             </div>
           </div>
-          <img src={post.image} alt="Post" className="rounded-md mb-4" />
-          <p className="text-sm text-gray-700">{post.content}</p>
+          <Image src={post.media} alt="Post" className="rounded-md mb-4" width={400} height={300} />
+          <p className="text-sm text-gray-700">{post.description}</p>
           <div className="flex space-x-4">
             <button className="flex items-center text-sm text-gray-500 hover:text-gray-700">
               <Heart className="h-4 w-4 mr-1" />
               {post.likes} Likes
             </button>
             <button className="flex items-center text-sm text-gray-500 hover:text-gray-700">
-              <MessageSquareMore className="h-4 w-4 mr-1" /> 
+              <MessageSquareMore className="h-4 w-4 mr-1" />
               {post.comments} Comments
             </button>
           </div>
@@ -111,7 +155,9 @@ export default function ProfileScreen() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-6 space-y-4 w-[90%] max-w-lg">
             <h3 className="text-lg font-medium text-gray-900">Edit Post</h3>
-            <p className="text-sm text-gray-500">Make changes to your post here. Click save when you're done.</p>
+            <p className="text-sm text-gray-500">
+              Make changes to your post here. Click save when you're done.
+            </p>
             <textarea
               className="w-full h-24 p-2 border text-black border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               value={editingPost.content}

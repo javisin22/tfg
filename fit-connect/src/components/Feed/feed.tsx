@@ -75,7 +75,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
         {posts.map((post) => (
           <div key={post.id} className="border rounded-lg shadow-md p-4 bg-white">
             <div className="flex items-center mb-4">
-            {/* Profile picture & username */}
+              {/* Profile picture & username */}
               <Image
                 src={post.users.profilePicture}
                 alt={`${post.users.username}'s profile picture.`}
@@ -141,7 +141,24 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
                 </div>
               </div>
             ) : (
-              <div>No comments yet</div>
+              <div className="px-6 py-4 bg-gray-200 mt-4">
+                <h4 className="text-sm font-medium text-black mb-2">No comments yet</h4>
+                <div className="mt-4 flex items-center space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Add a comment..."
+                    className="flex-1 px-3 py-2 border rounded-md text-black"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                  />
+                  <button
+                    className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
+                    onClick={() => postComment(post.id, post.userId, newComment)}
+                  >
+                    Post
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         ))}
