@@ -15,6 +15,7 @@ import {
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Logout from '../../components/Logout';
+import SearchBar from '../../components/SearchBar';
 
 export default function Layout({
   children,
@@ -66,10 +67,11 @@ export default function Layout({
           </div>
           {/* Search bar */}
           <div className="flex-1 flex justify-center">
-            <div className="flex items-center bg-white p-2 rounded-md">
-              <Search className="w-5 h-5 mr-2" />
+            <SearchBar />
+            {/* <div className="flex items-center bg-white p-2 rounded-md">
+              <Search className="w-5 h-5 mr-2 text-black" />
               <input type="text" placeholder="Search..." className="outline-none" />
-            </div>
+            </div> */}
           </div>
           {/* Logout button */}
           <div className="flex-1 flex justify-end">
