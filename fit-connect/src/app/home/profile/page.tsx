@@ -27,6 +27,7 @@ export default function ProfileScreen() {
       try {
         const res = await fetch('/api/user/posts/getPosts');
         const { posts } = await res.json();
+        console.log('User Posts:', posts);
         setUserPosts(posts);
       } catch (error) {
         console.error('Error fetching user posts:', error);

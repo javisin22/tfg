@@ -9,6 +9,23 @@ export async function GET(req: Request) {
 
     const supabase = createClient();
     const { data, error } = await supabase.from('posts').select('*').eq('userId', userData.id);
+    // const { data, error } = await supabase
+    //   .from('posts')
+    //   .select(
+    //     `
+    //   id, postedAt, userId, description, media, workoutId,
+    //   users:users (
+    //     username, profilePicture
+    //   ),
+    //   comments (
+    //     id, userId, postId, postedAt, content,
+    //     users:users (
+    //       username, profilePicture
+    //     )
+    //   )
+    // `
+    //   )
+    //   .eq('userId', userData.id);
 
     if (error) {
       console.log('error:', error);
