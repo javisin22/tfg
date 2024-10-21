@@ -42,7 +42,7 @@ export default function Layout({
           {menuItems.map((item) => (
             <Link href={item.href} key={item.label}>
               <button
-                className={`w-full text-left py-2 px-4 rounded-md ${
+                className={`w-full text-lg text-left py-2 px-4 rounded-md ${
                   pathname === item.href ? 'bg-gray-200 bg-opacity-80 text-black' : ''
                 }`}
               >

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
-import { SendHorizonal } from "lucide-react";
+import { User, SendHorizonal } from 'lucide-react';
+import Image from 'next/image';
 
-export default function ChatsScreen() { 
+export default function ChatsScreen() {
   const chats = [
     {
       id: 1,
@@ -67,13 +68,25 @@ export default function ChatsScreen() {
               onClick={() => setActiveChat(chat)}
             >
               <div className="flex items-center space-x-4">
-                <img src={chat.avatar} alt={chat.name} className="h-10 w-10 rounded-full text-black" />
+                {chat.profilePicture ? (
+                  <Image
+                    src={chat.avatar}
+                    alt={chat.name}
+                    className="h-10 w-10 rounded-full mr-2"
+                    width={40}
+                    height={40}
+                  />
+                ) : (
+                  <User className="h-10 w-10 rounded-full mr-2 text-black" />
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate text-black">{chat.name}</p>
                   <p className="text-sm text-gray-600 truncate">{chat.lastMessage}</p>
                 </div>
                 {chat.isGroup && (
-                  <div className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full">Group</div>
+                  <div className="bg-primary text-black text-xs px-2 py-1 rounded-full border-2">
+                    Group
+                  </div>
                 )}
               </div>
             </div>
@@ -111,12 +124,11 @@ export default function ChatsScreen() {
               className="flex-1 p-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             />
             <button className="p-2 rounded-full bg-primary text-black hover:bg-primary-dark">
-                <SendHorizonal className="h-4 w-4" />
+              <SendHorizonal className="h-4 w-4" />
             </button>
           </div>
         </div>
       </div>
     </div>
   );
-
 }
