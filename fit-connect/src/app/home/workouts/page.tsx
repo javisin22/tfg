@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Plus } from 'lucide-react';
 
 export default function WorkoutsScreen() {
   const [workouts, setWorkouts] = useState([]);
@@ -51,6 +52,16 @@ export default function WorkoutsScreen() {
           </Link>
         </div>
       ))}
+
+      {/* Create New Workout Button */}
+      <div className="flex justify-center mt-10">
+        <Link href="/home/workouts/new">
+          <button className="flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2">
+            <Plus size={24} />
+            Create New Workout
+          </button>
+        </Link>
+      </div>
     </div>
   );
 }
