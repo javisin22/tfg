@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid'; // Import UUID library
+import { v4 as uuidv4 } from 'uuid';
 
 // UPDATE request for updating a specific workout and its exercises for the user logged in.
 // It also returns the new updated workout data.
@@ -10,6 +10,37 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const { workout_exercises } = await req.json(); // Updated list of workout_exercises
 
     const supabase = createClient();
+
+    // Fetch existing exercises from the database
+    const { data: existingExercises, error: fetchExistingError } = await supabase
+      .from('workout_exercises')
+      .select('exerciseId')
+      .eq('workoutId', workoutId);
+
+    if (fetchExistingError) {
+      console.log('Fetch existing exercises error:', fetchExistingError);
+      return NextResponse.json({ error: fetchExistingError.message }, { status: 500 });
+    }
+
+    const existingExerciseIds = existingExercises.map((ex) => ex.exerciseId);
+    const updatedExerciseIds = workout_exercises.map((ex) => ex.exercises.id);
+
+    // Identify exercises to be deleted
+    const exercisesToDelete = existingExerciseIds.filter((id) => !updatedExerciseIds.includes(id));
+
+    // Delete exercises from the database
+    if (exercisesToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('workout_exercises')
+        .delete()
+        .in('exerciseId', exercisesToDelete)
+        .eq('workoutId', workoutId);
+
+      if (deleteError) {
+        console.log('Delete exercises error:', deleteError);
+        return NextResponse.json({ error: deleteError.message }, { status: 500 });
+      }
+    }
 
     for (const exercise of workout_exercises) {
       if (exercise.id) {

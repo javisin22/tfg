@@ -17,23 +17,23 @@ export default function CreateWorkoutPage() {
 
     // API call to create the new workout
     try {
-    //   const res = await fetch('/api/user/workouts/create', { // 🎃 Create the API call!!
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({ workout, workout_exercises: newExercises }),
-    //   });
-    //   if (!res.ok) {
-    //     throw new Error('Failed to create workout');
-    //   }
+      const res = await fetch('/api/user/workouts/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ workout, workout_exercises: newExercises }),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to create workout');
+      }
 
-    //   const { workout: newWorkout } = await res.json();
-    //   console.log('Created workout:', newWorkout);
-    //   setLoading(false);
+      const { workout: newWorkout } = await res.json();
+      // console.log('Created workout:', newWorkout);
+      setLoading(false);
 
-    //   // Redirect to the new workout page
-    //   router.push(`/home/workouts/${newWorkout.id}`);
+      // Redirect to the new workout page
+      router.push(`/home/workouts/${newWorkout.id}`);
     } catch (error) {
       console.error('Error creating workout:', error);
       setLoading(false);
@@ -90,7 +90,7 @@ export default function CreateWorkoutPage() {
           type="text"
           value={workout.name}
           onChange={(e) => handleWorkoutChange('name', e.target.value)}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-1 block w-full px-3 py-2 border text-black border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
       <div className="mb-4">
@@ -98,7 +98,7 @@ export default function CreateWorkoutPage() {
         <textarea
           value={workout.description}
           onChange={(e) => handleWorkoutChange('description', e.target.value)}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-1 block w-full px-3 py-2 border text-black border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
