@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { User } from '../types';
 import { useChat } from '../contexts/ChatContext';
+import { useRouter } from 'next/navigation';
 
 export default function SearchBar() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,6 +13,7 @@ export default function SearchBar() {
   const [specificResults, setSpecificResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   const { setActiveChat, createChat, chats } = useChat();
 
@@ -136,8 +138,8 @@ export default function SearchBar() {
     try {
       const resUsers = await fetch(`/api/search/users?term=${term}`);
       const dataUsers = await resUsers.json();
-      console.log('dataUsers:', dataUsers);
-      
+      // console.log('dataUsers:', dataUsers);
+
       /* dataUsers object example:
       {
         "users": [
@@ -162,54 +164,74 @@ export default function SearchBar() {
         setSpecificResults(data[resultKey] || []);
       }
 
-      /* data object example:
-      {
-    "chats": [
-        {
-            "id": "0ceec5b8-635b-4f75-826e-b7574424ea1c",
-            "name": "javisin&roldo",
-            "isGroup": false,
-            "avatar": null,
-            "chat_members": [
-                {
-                    "id": "9552720a-7f4f-4644-b6cb-072940c21a2e",
-                    "chatId": "0ceec5b8-635b-4f75-826e-b7574424ea1c",
-                    "userId": "468bb20a-da08-440d-8978-8418e2c17aa6",
-                    "joinedAt": "2024-10-30T01:50:01.49156"
-                }
-            ]
-        },
-        {
-            "id": "274cf263-07e3-402a-a3b6-76898cf38342",
-            "name": "javisin&rbejar",
-            "isGroup": false,
-            "avatar": null,
-            "chat_members": [
-                {
-                    "id": "3f1c5771-2c18-4e76-825a-a8ae810013f4",
-                    "chatId": "274cf263-07e3-402a-a3b6-76898cf38342",
-                    "userId": "468bb20a-da08-440d-8978-8418e2c17aa6",
-                    "joinedAt": "2024-10-30T01:50:27.558701"
-                }
-            ]
-        },
-        {
-            "id": "96293efb-ed86-44e0-ae80-aad827a5ad85",
-            "name": "Rhode Island 24/25",
-            "isGroup": true,
-            "avatar": null,
-            "chat_members": [
-                {
-                    "id": "08acc9af-3613-435f-9bbb-363f43520fe0",
-                    "chatId": "96293efb-ed86-44e0-ae80-aad827a5ad85",
-                    "userId": "468bb20a-da08-440d-8978-8418e2c17aa6",
-                    "joinedAt": "2024-10-29T22:20:00.047228"
-                }
-            ]
-        }
-    ]
-}
-      */
+      // data object example:
+      //{
+      // [
+      //   {
+      //     id: '0ceec5b8-635b-4f75-826e-b7574424ea1c',
+      //     name: 'javisin&roldo',
+      //     isGroup: false,
+      //     avatar: null,
+      //     chat_members: [
+      //       {
+      //         id: '9552720a-7f4f-4644-b6cb-072940c21a2e',
+      //         chatId: '0ceec5b8-635b-4f75-826e-b7574424ea1c',
+      //         userId: '468bb20a-da08-440d-8978-8418e2c17aa6',
+      //         joinedAt: '2024-10-30T01:50:01.49156',
+      //       },
+      //     ],
+      //     otherMembers: [
+      //       {
+      //         chatId: '0ceec5b8-635b-4f75-826e-b7574424ea1c',
+      //         userId: '3ff567f0-d072-4103-97f7-ae1542d0ff4b',
+      //       },
+      //     ],
+      //   },
+      //   {
+      //     id: '274cf263-07e3-402a-a3b6-76898cf38342',
+      //     name: 'javisin&rbejar',
+      //     isGroup: false,
+      //     avatar: null,
+      //     chat_members: [
+      //       {
+      //         id: '3f1c5771-2c18-4e76-825a-a8ae810013f4',
+      //         chatId: '274cf263-07e3-402a-a3b6-76898cf38342',
+      //         userId: '468bb20a-da08-440d-8978-8418e2c17aa6',
+      //         joinedAt: '2024-10-30T01:50:27.558701',
+      //       },
+      //     ],
+      //     otherMembers: [
+      //       {
+      //         chatId: '274cf263-07e3-402a-a3b6-76898cf38342',
+      //         userId: '543b5c17-9686-46b4-a4c1-e786055547f5',
+      //       },
+      //     ],
+      //   },
+      //   {
+      //     id: '96293efb-ed86-44e0-ae80-aad827a5ad85',
+      //     name: 'Rhode Island 24/25',
+      //     isGroup: true,
+      //     avatar: null,
+      //     chat_members: [
+      //       {
+      //         id: '08acc9af-3613-435f-9bbb-363f43520fe0',
+      //         chatId: '96293efb-ed86-44e0-ae80-aad827a5ad85',
+      //         userId: '468bb20a-da08-440d-8978-8418e2c17aa6',
+      //         joinedAt: '2024-10-29T22:20:00.047228',
+      //       },
+      //     ],
+      //     otherMembers: [
+      //       {
+      //         chatId: '96293efb-ed86-44e0-ae80-aad827a5ad85',
+      //         userId: '543b5c17-9686-46b4-a4c1-e786055547f5',
+      //       },
+      //       {
+      //         chatId: '96293efb-ed86-44e0-ae80-aad827a5ad85',
+      //         userId: '3ff567f0-d072-4103-97f7-ae1542d0ff4b',
+      //       },
+      //     ],
+      //   },
+      // ];
 
       setSearchResults(dataUsers['users'] || []);
       setShowDropdown(true);
@@ -257,16 +279,25 @@ export default function SearchBar() {
   const handleResultClick = async (result) => {
     if (pathname.startsWith('/home/chats')) {
       // If the logged-in user already has a chat with him, set it as active
-      // Otherwise, create a new chat
-      let chat = specificResults.find((chat) => chat.chat_members.some((member) => member.id === result.id));
+      // Otherwise, create a new chat 🎃
+
+      let chat = specificResults.find((chat) =>
+        chat.otherMembers.some((member) => member.userId === result.id)
+      );
+
       if (!chat) {
         console.log('Creating chat with:', result.id);
-        // chat = await createChat(result.id);
+        chat = await createChat(result.id);
+        console.log('Chat created:', chat);
       }
+
       setActiveChat(chat);
     } else {
-      // Handle other cases (e.g., user profile)🎃
-      // You can add more cases here if needed
+      // ('/home')
+      // redirect to the user profile page (`/home/profile/${result.id}`)
+      router.push(`/home/profile/${result.id}`);
+
+      //🎃 You can add more cases here if needed
     }
     setShowDropdown(false);
   };
@@ -297,37 +328,20 @@ export default function SearchBar() {
                 handleResultClick(result);
               }}
             >
-              {pathname.startsWith('/home/chats') ? (
-                <div className="flex items-center">
-                  {result.profilePicture ? (
-                    <Image
-                      src={result.profilePicture}
-                      alt={result.username}
-                      width={24}
-                      height={24}
-                      className="w-6 h-6 rounded-full mr-2"
-                    />
-                  ) : (
-                    <UserIcon className="w-6 h-6 rounded-full mr-2" />
-                  )}
-                  <span>{result.username}</span>
-                </div>
-              ) : (
-                <Link href={`/home/profile/${result.id}`} className="flex items-center">
-                  {result.profilePicture ? (
-                    <Image
-                      src={result.profilePicture}
-                      alt={result.username}
-                      width={24}
-                      height={24}
-                      className="w-6 h-6 rounded-full mr-2"
-                    />
-                  ) : (
-                    <UserIcon className="w-6 h-6 rounded-full mr-2" />
-                  )}
-                  <span>{result.username}</span>
-                </Link>
-              )}
+              <div className="flex items-center">
+                {result.profilePicture ? (
+                  <Image
+                    src={result.profilePicture}
+                    alt={result.username}
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 rounded-full mr-2"
+                  />
+                ) : (
+                  <UserIcon className="w-6 h-6 rounded-full mr-2" />
+                )}
+                <span>{result.username}</span>
+              </div>
             </li>
           ))}
         </ul>

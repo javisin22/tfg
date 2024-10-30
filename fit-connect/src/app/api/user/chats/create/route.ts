@@ -64,6 +64,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: memberError.message }, { status: 500 });
     }
 
+    // Fetch the username of the other user
+    const { data: otherUserData, error: otherUserError } = await supabase
+      .from('users')
+      .select('username')
+      .eq('id', userId)
+      .single();
+
+    if (otherUserError) {
+      console.error('error:', otherUserError);
+      return NextResponse.json({ error: otherUserError.message }, { status: 500 });
+    }
+
+    chatData[0].name = otherUserData.username;
+
     return NextResponse.json({ chat: chatData[0] }, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {
