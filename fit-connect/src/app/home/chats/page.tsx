@@ -1,60 +1,79 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { User, SendHorizonal } from 'lucide-react';
 import Image from 'next/image';
+import Loading from '../../../components/Loading';
 
 export default function ChatsScreen() {
-  const chats = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      avatar: '/placeholder.svg?height=40&width=40',
-      lastMessage: 'See you at the gym!',
-      isGroup: false,
-    },
-    {
-      id: 2,
-      name: 'Running Club',
-      avatar: '/placeholder.svg?height=40&width=40',
-      lastMessage: "Who's up for a group run this weekend?",
-      isGroup: true,
-    },
-    {
-      id: 3,
-      name: 'David Lee',
-      avatar: '/placeholder.svg?height=40&width=40',
-      lastMessage: 'Thanks for the workout tips!',
-      isGroup: false,
-    },
-    {
-      id: 4,
-      name: 'Yoga Enthusiasts',
-      avatar: '/placeholder.svg?height=40&width=40',
-      lastMessage: 'New yoga session scheduled for tomorrow',
-      isGroup: true,
-    },
-  ];
-
+  const [userId, setUserId] = useState('');
+  const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(chats[0]);
+  const [messages, setMessages] = useState([]);
 
-  const messages = [
-    {
-      id: 1,
-      sender: 'Sarah Johnson',
-      content: 'Hey! Are we still on for our workout session today?',
-      timestamp: '10:30 AM',
-    },
-    { id: 2, sender: 'You', content: "I'll meet you at the gym at 5 PM.", timestamp: '10:32 AM' },
-    {
-      id: 3,
-      sender: 'Sarah Johnson',
-      content: "Perfect! Don't forget to bring your resistance bands.",
-      timestamp: '10:33 AM',
-    },
-    { id: 4, sender: 'You', content: 'Got it! See you soon. 💪', timestamp: '10:35 AM' },
-  ];
+  useEffect(() => {
+    // Fetch chats and messages for the user logged in
+    async function fetchChats() {
+      try {
+        const response = await fetch('/api/user/chats/getChats');
+        const data = await response.json();
+
+        console.log('data:', data);
+
+        if (response.ok) {
+          setChats(data.chats);
+          setActiveChat(data.chats[0]);
+        } else {
+          console.error(data.error);
+        }
+      } catch (error) {
+        console.error('Error fetching chats:', error);
+      }
+    }
+
+    async function getUserInfo() {
+      try {
+        const res = await fetch('/api/user/info');
+        const { user } = await res.json();
+        setUserId(user.id);
+        console.log('User Info:', user);
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
+
+    fetchChats();
+    getUserInfo();
+  }, []);
+
+  // Fetch messages for the selected chat
+  useEffect(() => {
+    async function fetchMessages() {
+      if (!activeChat) return;
+
+      try {
+        const response = await fetch(`/api/user/chats/getMessages/${activeChat.id}`);
+        const data = await response.json();
+
+        console.log('Messages:', data);
+
+        if (response.ok) {
+          setMessages(data.messages);
+        } else {
+          console.error(data.error);
+        }
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    }
+
+    fetchMessages();
+  }, [activeChat]);
+
+  if (!chats.length) {
+    return <Loading />;
+  }
 
   return (
     <div className="flex h-[calc(100vh-120px)]">
@@ -81,12 +100,14 @@ export default function ChatsScreen() {
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate text-black">{chat.name}</p>
-                  <p className="text-sm text-gray-600 truncate">{chat.lastMessage}</p>
+                  <p className="text-sm text-gray-600 truncate">
+                    {chat.lastMessage && chat.lastMessage[0]
+                      ? chat.lastMessage[0].content
+                      : 'No messages yet'}
+                  </p>
                 </div>
                 {chat.isGroup && (
-                  <div className="bg-primary text-black text-xs px-2 py-1 rounded-full border-2">
-                    Group
-                  </div>
+                  <div className="bg-primary text-black text-xs px-2 py-1 rounded-full border-2">Group</div>
                 )}
               </div>
             </div>
@@ -104,13 +125,16 @@ export default function ChatsScreen() {
         {/* Chat Messages */}
         <div className="flex-1 p-4 overflow-y-auto">
           {messages.map((message) => (
-            <div key={message.id} className={`mb-4 ${message.sender === 'You' ? 'text-right' : ''}`}>
+            <div key={message.id} className={`mb-4 ${message.senderId === userId ? 'text-right' : ''}`}>
+              {activeChat?.isGroup && message.senderId !== userId && (
+                <p className="text-xs text-gray-500">{message.sender.username}</p>
+              )}
               <div
-                className={`inline-block p-2 rounded-lg ${message.sender === 'You' ? 'bg-gray-100 text-primary-foreground' : 'bg-gray-300'}`}
+                className={`inline-block p-2 rounded-lg ${message.senderId === userId ? 'bg-gray-100 text-primary-foreground' : 'bg-gray-300'}`}
               >
                 <p className="text-sm text-gray-700">{message.content}</p>
               </div>
-              <p className="text-xs text-gray-500 mt-1">{message.timestamp}</p>
+              <p className="text-xs text-gray-500 mt-1">{new Date(message.timeStamp).toLocaleString()}</p>
             </div>
           ))}
         </div>
