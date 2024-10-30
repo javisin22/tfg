@@ -5,11 +5,13 @@ import { useEffect, useState } from 'react';
 import { User, SendHorizonal } from 'lucide-react';
 import Image from 'next/image';
 import Loading from '../../../components/Loading';
+import { useChat } from '../../../contexts/ChatContext';
 
 export default function ChatsScreen() {
   const [userId, setUserId] = useState('');
-  const [chats, setChats] = useState([]);
-  const [activeChat, setActiveChat] = useState(chats[0]);
+  // const [chats, setChats] = useState([]);
+  // const [activeChat, setActiveChat] = useState(chats[0]);
+  const { chats, setChats, activeChat, setActiveChat } = useChat();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
 
