@@ -11,6 +11,7 @@ export default function ChatsScreen() {
   const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(chats[0]);
   const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
 
   useEffect(() => {
     // Fetch chats and messages for the user logged in
@@ -70,6 +71,33 @@ export default function ChatsScreen() {
 
     fetchMessages();
   }, [activeChat]);
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+
+    console.log('Sending message:', newMessage);
+
+    try {
+      const response = await fetch(`/api/user/chats/sendMessage/${activeChat.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: newMessage }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessages((prevMessages) => [...prevMessages, data.message]);
+        setNewMessage(''); // Clear the input field
+      } else {
+        console.error(data.error);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
 
   if (!chats.length) {
     return <Loading />;
@@ -145,9 +173,15 @@ export default function ChatsScreen() {
             <input
               type="text"
               placeholder="Type a message..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
               className="flex-1 p-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             />
-            <button className="p-2 rounded-full bg-primary text-black hover:bg-primary-dark">
+            <button
+              onClick={handleSendMessage}
+              className="p-2 rounded-full bg-primary text-black hover:bg-primary-dark"
+            >
               <SendHorizonal className="h-4 w-4" />
             </button>
           </div>
