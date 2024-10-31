@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { getUserInfo } from '@/utils/user';
 
+// '/api/user/chats/sendMessage/[id]'
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
   try {

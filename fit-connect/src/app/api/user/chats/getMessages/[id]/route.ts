@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
+// '/api/user/chats/getMessages/[id]'
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
   try {

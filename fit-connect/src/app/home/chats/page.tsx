@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Loading from '../../../components/Loading';
 import { useChat } from '../../../contexts/ChatContext';
 import CreateGroupPopup from '../../../components/CreateGroupPopup';
+import { createClient } from '@/utils/supabase/client';
 
 export default function ChatsScreen() {
   const [userId, setUserId] = useState('');
@@ -26,7 +27,7 @@ export default function ChatsScreen() {
 
         if (response.ok) {
           setChats(data.chats);
-          setActiveChat(data.chats[0]);
+          if (data.chats.length > 0) setActiveChat(data.chats[0]);
         } else {
           console.error(data.error);
         }
@@ -50,11 +51,11 @@ export default function ChatsScreen() {
     getUserInfo();
   }, []);
 
-  // Fetch messages for the selected chat
+  // Fetch messages for the selected chat and set up real-time listener
   useEffect(() => {
-    async function fetchMessages() {
-      if (!activeChat) return;
+    if (!activeChat) return;
 
+    async function fetchMessages() {
       try {
         const response = await fetch(`/api/user/chats/getMessages/${activeChat.id}`);
         const data = await response.json();
@@ -72,6 +73,30 @@ export default function ChatsScreen() {
     }
 
     fetchMessages();
+
+    // Set up real-time listener for new messages
+    const supabase = createClient();
+    const subscription = supabase
+      .channel(`chat:${activeChat.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `chatId=eq.${activeChat.id}` },
+        (payload) => {
+          console.log('New message received:', payload.new);
+          setMessages((prevMessages) => {
+            // Check if the message is already in the state to avoid duplicates
+            if (!prevMessages.some((msg) => msg.id === payload.new.id)) {
+              return [...prevMessages, payload.new];
+            }
+            return prevMessages;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [activeChat]);
 
   const handleSendMessage = async () => {
@@ -91,7 +116,6 @@ export default function ChatsScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessages((prevMessages) => [...prevMessages, data.message]);
         setNewMessage(''); // Clear the input field
       } else {
         console.error(data.error);
@@ -101,7 +125,7 @@ export default function ChatsScreen() {
     }
   };
 
-  const handleCreateGroup = async (name: string, members: string[]) => {    
+  const handleCreateGroup = async (name: string, members: string[]) => {
     console.log('Creating group chat...');
     try {
       const response = await fetch('/api/user/chats/createGroup', {
@@ -124,8 +148,8 @@ export default function ChatsScreen() {
     } catch (error) {
       console.error('Error creating group chat:', error);
     }
-  }
-  
+  };
+
   if (!chats.length) {
     return <Loading />;
   }
@@ -222,7 +246,7 @@ export default function ChatsScreen() {
           </div>
         </div>
       </div>
-      
+
       <CreateGroupPopup
         isOpen={isCreatingGroup}
         onClose={() => setIsCreatingGroup(false)}
