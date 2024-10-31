@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
+// api/search/users?term=...
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const term = searchParams.get('term')?.toLowerCase();

@@ -13,18 +13,18 @@ export async function POST(req: Request) {
     console.log('Creating chat with user:', userId);
 
     /*
-            In order to create new chat:
-              - Insert a new row in 'chats' with: 
-                 - username1&'username2' for field 'name'
-                 - isGroup = false
-              - Insert two new rows in 'chat_members':
-                * First row:
-                    - chatId = chatId (retrieved from the first query)
-                    - userId = userId (retrieved from the request)
-                * Second row:
-                    - chatId = chatId (retrieved from the first query)
-                    - userId = userData.id (retrieved from the getUserInfo() call)
-        */
+        In order to create new chat:
+            - Insert a new row in 'chats' with: 
+                - username1&'username2' for field 'name'
+                - isGroup = false
+            - Insert two new rows in 'chat_members':
+            * First row:
+                - chatId = chatId (retrieved from the first query)
+                - userId = userId (retrieved from the request)
+            * Second row:
+                - chatId = chatId (retrieved from the first query)
+                - userId = userData.id (retrieved from the getUserInfo() call)
+    */
 
     // Query to create a new chat
     const { data: chatData, error: chatError } = await supabase

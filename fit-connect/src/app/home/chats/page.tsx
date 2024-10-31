@@ -2,18 +2,18 @@
 
 import { useEffect, useState } from 'react';
 
-import { User, SendHorizonal } from 'lucide-react';
+import { User, SendHorizonal, Plus } from 'lucide-react';
 import Image from 'next/image';
 import Loading from '../../../components/Loading';
 import { useChat } from '../../../contexts/ChatContext';
+import CreateGroupPopup from '../../../components/CreateGroupPopup';
 
 export default function ChatsScreen() {
   const [userId, setUserId] = useState('');
-  // const [chats, setChats] = useState([]);
-  // const [activeChat, setActiveChat] = useState(chats[0]);
   const { chats, setChats, activeChat, setActiveChat } = useChat();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 
   useEffect(() => {
     // Fetch chats and messages for the user logged in
@@ -101,6 +101,31 @@ export default function ChatsScreen() {
     }
   };
 
+  const handleCreateGroup = async (name: string, members: string[]) => {    
+    console.log('Creating group chat...');
+    try {
+      const response = await fetch('/api/user/chats/createGroup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, members }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setChats((prevChats) => [...prevChats, data.chat]);
+        setIsCreatingGroup(false);
+        setActiveChat(data.chat);
+      } else {
+        console.error(data.error);
+      }
+    } catch (error) {
+      console.error('Error creating group chat:', error);
+    }
+  }
+  
   if (!chats.length) {
     return <Loading />;
   }
@@ -109,6 +134,14 @@ export default function ChatsScreen() {
     <div className="flex h-[calc(100vh-120px)]">
       {/* Chat List */}
       <div className="w-1/3 border rounded-lg shadow-md p-4 bg-white">
+        <button
+          onClick={() => setIsCreatingGroup(true)}
+          className="w-full mb-5 p-2 bg-black text-white rounded-md flex items-center justify-center"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Create New Group
+        </button>
+        <hr className="mb-4 border-gray-300" />
         <div className="h-full overflow-y-auto">
           {chats.map((chat) => (
             <div
@@ -189,6 +222,12 @@ export default function ChatsScreen() {
           </div>
         </div>
       </div>
+      
+      <CreateGroupPopup
+        isOpen={isCreatingGroup}
+        onClose={() => setIsCreatingGroup(false)}
+        onCreateGroup={handleCreateGroup}
+      />
     </div>
   );
 }
