@@ -150,6 +150,28 @@ export default function ChatsScreen() {
     }
   };
 
+  const handleLeaveGroup = async () => {
+    if (!activeChat || !activeChat.isGroup) return;
+
+    try {
+      const response = await fetch(`/api/user/chats/leaveGroup/${activeChat.id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setChats((prevChats) => prevChats.filter((chat) => chat.id !== activeChat.id));
+        // If the group chat the user is leaving is the active chat, set the following chat as active (if any)
+        chats[0].id === activeChat.id ? setActiveChat(chats[1] || null) : setActiveChat(chats[0] || null);
+      } else {
+        console.error(data.error);
+      }
+    } catch (error) {
+      console.error('Error leaving group:', error);
+    }
+  };
+
   if (!chats.length) {
     return <Loading />;
   }
@@ -205,8 +227,16 @@ export default function ChatsScreen() {
       {/* Chat Area */}
       <div className="flex-1 flex flex-col border rounded-lg shadow-md p-4 bg-white">
         {/* Chat Header */}
-        <div className="p-4 border-b">
+        <div className="flex justify-between p-4 border-b">
           <h2 className="text-lg font-semibold text-black">{activeChat.name}</h2>
+          {activeChat.isGroup && (
+            <button
+              onClick={handleLeaveGroup}
+              className="bg-red-500 hover:bg-red-700 text-white px-2 py-1 rounded-md"
+            >
+              Leave Group
+            </button>
+          )}
         </div>
 
         {/* Chat Messages */}
