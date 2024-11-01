@@ -96,25 +96,6 @@ export default function SearchBar() {
   const handleResultClick = async (result) => {
     if (pathname.startsWith('/home/chats')) {
       // If the logged-in user already has a chat with him, set it as active
-      console.log('Result:', result);
-      /* Group object example:
-
-      {
-        "id": "96293efb-ed86-44e0-ae80-aad827a5ad85",
-        "name": "Rhode Island 24/25",
-        "avatar": null,
-        "isGroup": true,
-      }
-
-        Private chat object example:
-      {
-          "id": "543b5c17-9686-46b4-a4c1-e786055547f5",
-          "username": "rbejar",
-          "profilePicture": null
-      }
-
-      */
-
       let chat;
 
       if (result.isGroup) {
@@ -125,13 +106,7 @@ export default function SearchBar() {
         );
       }
 
-      console.log('Chat:', chat);
-
-      // let chat = specificResults.find(
-      //   (chat) => !chat.isGroup && chat.otherMembers.some((member) => member.userId === result.id)
-      // );
-
-      // Otherwise, create a new chat
+      // Otherwise, create a new chat (only for private chats)
       if (!chat) {
         console.log('Creating chat with:', result.id);
         // chat = await createChat(result.id);
@@ -140,11 +115,9 @@ export default function SearchBar() {
 
       setActiveChat(chat);
     } else {
+      // add else ifs for 'events' page and leave the else for the '/home' behavior
       // '/home' behavior
-
       router.push(`/home/profile/${result.id}`);
-
-      //🎃 You can add more cases here if needed
     }
     setShowDropdown(false);
   };
