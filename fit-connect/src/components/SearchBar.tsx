@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, User as UserIcon } from 'lucide-react';
+import { Search, User as UserIcon, Users as GroupIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -33,18 +33,24 @@ export default function SearchBar() {
     //   return;
     // }
     try {
-      const resUsers = await fetch(`/api/search/users?term=${term}`);
-      const dataUsers = await resUsers.json();
-      // console.log('dataUsers:', dataUsers);
+      let resSearchBar;
+      if (pathname.startsWith('/home/chats')) {
+        resSearchBar = await fetch(`/api/search/users&groups?term=${term}`);
+      } else {
+        resSearchBar = await fetch(`/api/search/users?term=${term}`);
+      }
+      const data = await resSearchBar.json();
+      console.log('Search data:', data['results']);
 
       if (endpoint !== '') {
+        // 🎃 Hard-coded for 'Chats' screen
         const resSpecific = await fetch(`${endpoint}?term=${term}`);
         const data = await resSpecific.json();
         console.log('Specific data:', data[resultKey]);
         setSpecificResults(data[resultKey] || []);
       }
 
-      setSearchResults(dataUsers['users'] || []);
+      setSearchResults(data['results'] || []);
       setShowDropdown(true);
     } catch (error) {
       console.error('Error performing search:', error);
@@ -90,15 +96,45 @@ export default function SearchBar() {
   const handleResultClick = async (result) => {
     if (pathname.startsWith('/home/chats')) {
       // If the logged-in user already has a chat with him, set it as active
+      console.log('Result:', result);
+      /* Group object example:
+
+      {
+        "id": "96293efb-ed86-44e0-ae80-aad827a5ad85",
+        "name": "Rhode Island 24/25",
+        "avatar": null,
+        "isGroup": true,
+      }
+
+        Private chat object example:
+      {
+          "id": "543b5c17-9686-46b4-a4c1-e786055547f5",
+          "username": "rbejar",
+          "profilePicture": null
+      }
+
+      */
+
+      let chat;
+
+      if (result.isGroup) {
+        chat = result;
+      } else {
+        chat = specificResults.find(
+          (chat) => !chat.isGroup && chat.otherMembers.some((member) => member.userId === result.id)
+        );
+      }
+
+      console.log('Chat:', chat);
+
+      // let chat = specificResults.find(
+      //   (chat) => !chat.isGroup && chat.otherMembers.some((member) => member.userId === result.id)
+      // );
+
       // Otherwise, create a new chat
-
-      let chat = specificResults.find((chat) =>
-        chat.otherMembers.some((member) => member.userId === result.id)
-      );
-
       if (!chat) {
         console.log('Creating chat with:', result.id);
-        chat = await createChat(result.id);
+        // chat = await createChat(result.id);
         console.log('Chat created:', chat);
       }
 
@@ -148,10 +184,20 @@ export default function SearchBar() {
                     height={24}
                     className="w-6 h-6 rounded-full mr-2"
                   />
+                ) : result.avatar ? (
+                  <Image
+                    src={result.avatar}
+                    alt={result.name}
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 rounded-full mr-2"
+                  />
+                ) : result.isGroup ? (
+                  <GroupIcon className="w-6 h-6 rounded-full mr-2" />
                 ) : (
                   <UserIcon className="w-6 h-6 rounded-full mr-2" />
                 )}
-                <span>{result.username}</span>
+                <span>{result.username || result.name}</span>
               </div>
             </li>
           ))}
