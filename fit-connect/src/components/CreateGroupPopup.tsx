@@ -1,55 +1,27 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { X, Search, Check } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { X, Search, Check } from 'lucide-react';
 
-
-export default function CreateGroupPopup({ isOpen, onClose, onCreateGroup }: { 
-  isOpen: boolean
-  onClose: () => void
-  onCreateGroup: (name: string, members: string[]) => void 
+export default function CreateGroupPopup({
+  isOpen,
+  onClose,
+  onCreateGroup,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onCreateGroup: (name: string, members: string[]) => void;
 }) {
-  const [groupName, setGroupName] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [users, setUsers] = useState([])
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
-
-  useEffect(() => {
-    if (searchTerm) {
-      fetchUsers()
-    } else {
-      setUsers([])
-    }
-  }, [searchTerm])
-
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch(`/api/search/users?term=${searchTerm}`)
-      const data = await response.json()
-      if (response.ok) {
-        setUsers(data.users)
-      } else {
-        console.error(data.error)
-      }
-    } catch (error) {
-      console.error('Error fetching users:', error)
-    }
-  }
-
-  const toggleUserSelection = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
-    )
-  }
+  const [eventName, setEventName] = useState('');
 
   const handleCreateGroup = () => {
-    if (groupName && selectedUsers.length > 0) {
-      onCreateGroup(groupName, selectedUsers)
-      onClose()
+    if (eventName && selectedUsers.length > 0) {
+      onCreateGroup(eventName, selectedUsers);
+      onClose();
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -64,8 +36,8 @@ export default function CreateGroupPopup({ isOpen, onClose, onCreateGroup }: {
           <input
             type="text"
             placeholder="Group Name"
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
+            value={eventName}
+            onChange={(e) => setEventName(e.target.value)}
             className="w-full p-2 border rounded mb-4 text-black"
           />
           <div className="relative mb-4">
@@ -79,9 +51,9 @@ export default function CreateGroupPopup({ isOpen, onClose, onCreateGroup }: {
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           </div>
           <div className="max-h-60 overflow-y-auto">
-            {users.map(user => (
-              <div 
-                key={user.id} 
+            {users.map((user) => (
+              <div
+                key={user.id}
                 className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
                 onClick={() => toggleUserSelection(user.id)}
               >
@@ -94,10 +66,8 @@ export default function CreateGroupPopup({ isOpen, onClose, onCreateGroup }: {
                     </div>
                   )}
                 </div>
-                <span className='text-black'>{user.username}</span>
-                {selectedUsers.includes(user.id) && (
-                  <Check className="ml-auto h-5 w-5 text-green-500" />
-                )}
+                <span className="text-black">{user.username}</span>
+                {selectedUsers.includes(user.id) && <Check className="ml-auto h-5 w-5 text-green-500" />}
               </div>
             ))}
           </div>
@@ -112,5 +82,5 @@ export default function CreateGroupPopup({ isOpen, onClose, onCreateGroup }: {
         </div>
       </div>
     </div>
-  )
+  );
 }
