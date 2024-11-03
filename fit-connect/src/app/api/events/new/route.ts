@@ -9,28 +9,43 @@ export async function POST(req: Request) {
     const user = await getUserInfo();
     const userId = user.id;
     const supabase = createClient();
-    
+
     // Parse the request body
     const { name, date, location, maxParticipants, description, media } = await req.json();
 
     // Insert the new event into the database: name, description, organizerId, date, location, maxParticipants, media
-    const { data: newEvent, error: newEventError } = await supabase.from('events').insert([
-      {
-        name,
-        date,
-        location,
-        maxParticipants,
-        description,
-        media,
-        organizerId: userId,
-      },
-    ]);
+    const { data: newEvent, error: newEventError } = await supabase
+      .from('events')
+      .insert([
+        {
+          name,
+          date,
+          location,
+          maxParticipants,
+          description,
+          media,
+          organizerId: userId,
+        },
+      ])
+      .select('*, users:organizerId (username)');
 
     // console.log('newEvent:', newEvent);
 
     if (newEventError) {
       console.error('error:', newEventError);
       return NextResponse.json({ error: newEventError.message }, { status: 500 });
+    }
+
+    console.log('Event created:', newEvent);
+
+    // Insert himselft in event_members: eventId, userId
+    const { data: newEventMember, error: newEventMemberError } = await supabase
+      .from('event_members')
+      .insert([{ eventId: newEvent[0].id, userId }]);
+
+    if (newEventMemberError) {
+      console.error('error:', newEventMemberError);
+      return NextResponse.json({ error: newEventMemberError.message }, { status: 500 });
     }
 
     return NextResponse.json({ event: newEvent }, { status: 200 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Image as ImageIcon, X } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '@/utils/supabase/client';
@@ -8,18 +8,11 @@ import { createClient } from '@/utils/supabase/client';
 export default function CreateEventPopup({
   isOpen,
   onClose,
-  onCreateEvent,
+  onEventCreated,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onCreateEvent: (event: {
-    name: string;
-    date: string;
-    location: string;
-    maxParticipants: number | null;
-    description: string;
-    media: string;
-  }) => void;
+  onEventCreated: (event: any) => void;
 }) {
   const [eventName, setEventName] = useState('');
   const [eventDate, setEventDate] = useState('');
@@ -66,11 +59,17 @@ export default function CreateEventPopup({
     const { data, error } = await supabase.storage.from('events_media').upload(fileName, file);
     if (error) {
       console.error('Error uploading image:', error);
+      return null;
     }
 
     const publicUrl = supabase.storage.from('events_media').getPublicUrl(fileName);
-    console.log('Image uploaded has the publicUrl:', publicUrl.data?.publicUrl);
-    return publicUrl.data?.publicUrl;
+    if (!publicUrl.data) {
+      console.error('Error getting public URL:');
+      return null;
+    }
+
+    console.log('Image uploaded has the publicUrl:', publicUrl.data.publicUrl);
+    return publicUrl.data.publicUrl;
   };
 
   const handleCreateEvent = async () => {
@@ -85,15 +84,28 @@ export default function CreateEventPopup({
         throw new Error('Error uploading image');
       }
 
-      onCreateEvent({
-        name: eventName,
-        date: eventDate,
-        location: eventLocation,
-        maxParticipants,
-        description: eventDescription,
-        media: imageUrl,
+      const res = await fetch('/api/events/new', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: eventName,
+          date: eventDate,
+          location: eventLocation,
+          maxParticipants,
+          description: eventDescription,
+          media: imageUrl,
+        }),
       });
-      onClose();
+      const data = await res.json();
+      console.log('Event received:', data);
+      if (res.ok) {
+        onEventCreated(data.event[0]);
+        onClose();
+      } else {
+        console.error('Error creating event:', data.error);
+      }
     } catch (error) {
       console.error('Error creating event:', error);
     }
@@ -139,7 +151,6 @@ export default function CreateEventPopup({
             onChange={(e) => setMaxParticipants(e.target.value ? parseInt(e.target.value) : null)}
             className="w-full p-2 border rounded mb-4 text-black"
           />
-          {/*🎃 FIX: puede llegar a desbordar (haría falta poner una barra lateral para subir/bajar) */}
           <textarea
             placeholder="Event Description"
             value={eventDescription}

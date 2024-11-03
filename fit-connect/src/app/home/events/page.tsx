@@ -23,20 +23,31 @@ export default function EventsScreen() {
     fetchEvents();
   }, []);
 
-  const handleCreateEvent = async (event) => {
+  const handleEventCreated = (event) => {
+    setEvents((prevEvents) => [...prevEvents, event]);
+  };
+
+  const handleJoinEvent = async (eventId) => {
     try {
-      const res = await fetch('/api/events/new', {
+      const res = await fetch(`/api/events/join/${eventId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(event),
       });
       const data = await res.json();
-      console.log(data);
-      setEvents((prevEvents) => [...prevEvents, data.event]);
+      // 🎃 Change Alerts to Toasts in future (or better display)
+      if (res.status === 200) {
+        console.log('Joined event successfully:', data);
+        alert('You have successfully joined the event.');
+      } else if (res.status === 400 && data.error === 'Event is full') {
+        alert('The event is full. You cannot join this event.');
+      } else {
+        console.error('Error joining event:', data.error);
+        alert('An error occurred while trying to join the event.');
+      }
     } catch (error) {
-      console.error('Error creating event:', error);
+      console.error('Error joining event:', error);
     }
   };
 
@@ -77,7 +88,9 @@ export default function EventsScreen() {
               <CircleUserRound size={18} className="text-primary mr-2" />
               Organized by: {event.users.username}
             </div>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4">Join</button>
+            <button className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4" onClick={() => handleJoinEvent(event.id)}>
+              Join
+            </button>
           </div>{' '}
         </div>
       ))}
@@ -89,11 +102,7 @@ export default function EventsScreen() {
         <Plus size={24} className="inline-block" />
       </button>
 
-      <CreateEventPopup
-        isOpen={isCreatingEvent}
-        onClose={() => setIsCreatingEvent(false)}
-        onCreateEvent={handleCreateEvent}
-      />
+      <CreateEventPopup isOpen={isCreatingEvent} onClose={() => setIsCreatingEvent(false)} onEventCreated={handleEventCreated} />
     </div>
   );
 }
