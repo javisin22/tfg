@@ -73,15 +73,18 @@ export default function CreateEventPopup({
   };
 
   const handleCreateEvent = async () => {
-    if (!eventName || !eventDate || !eventLocation || !eventDescription || !image) {
+    if (!eventName || !eventDate || !eventLocation || !eventDescription) {
       alert('Please provide all required fields and upload an image');
       return;
     }
 
     try {
-      const imageUrl = await uploadImageToSupabase(image);
-      if (!imageUrl) {
-        throw new Error('Error uploading image');
+      let imageUrl = null;
+      if (image) {
+        imageUrl = await uploadImageToSupabase(image);
+        if (!imageUrl) {
+          throw new Error('Error uploading image');
+        }
       }
 
       const res = await fetch('/api/events/new', {
@@ -168,13 +171,7 @@ export default function CreateEventPopup({
           >
             {imagePreview ? (
               <div className="absolute inset-0 m-2">
-                <Image
-                  src={imagePreview}
-                  alt="Uploaded"
-                  fill
-                  style={{ objectFit: 'contain' }}
-                  className="rounded-lg"
-                />
+                <Image src={imagePreview} alt="Uploaded" fill style={{ objectFit: 'contain' }} className="rounded-lg" />
                 <button
                   className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-md hover:bg-gray-100 transition-colors"
                   onClick={() => {
@@ -214,10 +211,7 @@ export default function CreateEventPopup({
           </div>
         </div>
         <div className="flex justify-start p-4 border-t text-black">
-          <button
-            onClick={handleCreateEvent}
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-primary-dark"
-          >
+          <button onClick={handleCreateEvent} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-primary-dark">
             Create Event
           </button>
         </div>
