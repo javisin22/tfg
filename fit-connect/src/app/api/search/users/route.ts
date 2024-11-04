@@ -22,7 +22,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Error fetching users' }, { status: 500 });
     }
 
-    return NextResponse.json({ users });
+    return NextResponse.json({ results: users });
   } catch (error) {
     console.error('Error performing search:', error);
     return NextResponse.json({ error: 'Error performing search' }, { status: 500 });

@@ -5,6 +5,7 @@ import { User, Heart, MessageSquareMore } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Post } from '../../../../types';
+import Loading from '../../../../components/Loading';
 
 export default function UserProfile() {
   const { id } = useParams();
@@ -41,7 +42,9 @@ export default function UserProfile() {
     fetchUserPosts();
   }, [id]);
 
-  if (!userInfo) return <p>Loading...</p>;
+  if (!userInfo) {
+    return <Loading />;
+  }
 
   return (
     <div className="h-[calc(100vh-120px)] overflow-y-auto p-6 space-y-6">
@@ -98,9 +101,7 @@ export default function UserProfile() {
             )}
             <div>
               <p className="text-sm font-medium text-black">{userInfo.username}</p>
-              <p className="text-xs text-gray-500">
-                Posted on {new Date(post.postedAt).toLocaleDateString()}
-              </p>
+              <p className="text-xs text-gray-500">Posted on {new Date(post.postedAt).toLocaleDateString()}</p>
             </div>
           </div>
           <Image src={post.media} alt="Post" className="rounded-md mb-4" width={400} height={300} />

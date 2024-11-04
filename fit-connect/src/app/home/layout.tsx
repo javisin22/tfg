@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Calendar, Dumbbell, HomeIcon, MessageCircle, Settings, User } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -15,9 +15,11 @@ export default function Layout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const [activeTab] = useState<string>(pathname.substring(1) || 'Home');
+  const [activeTab, setActiveChat] = useState<string>(pathname.split('/')[2] || 'home');
 
-  // console.log('Pathname: ', pathname);
+  useEffect(() => {
+    setActiveChat(pathname.split('/')[2] || 'home');
+  }, [pathname]);
 
   const menuItems = [
     { label: 'Home', icon: HomeIcon, href: '/home' },
