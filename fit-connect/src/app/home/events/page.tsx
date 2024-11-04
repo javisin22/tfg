@@ -4,9 +4,12 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Image as ImageIcon, Plus, Calendar, MapPin, Users, CircleUserRound } from 'lucide-react';
 import CreateEventPopup from '../../../components/CreateEventPopup';
+import Loading from '../../../components/Loading';
+import { useEvents } from '../../../contexts/EventsContext';
 
 export default function EventsScreen() {
-  const [events, setEvents] = useState([]);
+  // const [events, setEvents] = useState([]);
+  const { events, setEvents, handleEventCreated } = useEvents();
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
 
   useEffect(() => {
@@ -21,11 +24,7 @@ export default function EventsScreen() {
       }
     }
     fetchEvents();
-  }, []);
-
-  const handleEventCreated = (event) => {
-    setEvents((prevEvents) => [...prevEvents, event]);
-  };
+  }, [setEvents]);
 
   const handleJoinEvent = async (eventId) => {
     try {
@@ -42,6 +41,8 @@ export default function EventsScreen() {
         alert('You have successfully joined the event.');
       } else if (res.status === 400 && data.error === 'Event is full') {
         alert('The event is full. You cannot join this event.');
+      } else if (res.status === 409 && data.error === 'User is already a member of the event') {
+        alert('You are already a member of this event.');
       } else {
         console.error('Error joining event:', data.error);
         alert('An error occurred while trying to join the event.');
@@ -50,6 +51,10 @@ export default function EventsScreen() {
       console.error('Error joining event:', error);
     }
   };
+
+  if (events.length === 0) {
+    return <Loading />;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">

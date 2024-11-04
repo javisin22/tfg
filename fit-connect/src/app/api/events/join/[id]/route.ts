@@ -35,6 +35,22 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: 'Event is full' }, { status: 400 });
     }
 
+    // Check if the user is already a member of the event
+    const { data: existingMember, error: existingMemberError } = await supabase
+      .from('event_members')
+      .select('id')
+      .eq('eventId', id)
+      .eq('userId', userId)
+      .single();
+
+    if (existingMemberError && existingMemberError.code !== 'PGRST116') {
+      return NextResponse.json({ error: existingMemberError.message }, { status: 500 });
+    }
+
+    if (existingMember) {
+      return NextResponse.json({ error: 'User is already a member of the event' }, { status: 409 });
+    }
+
     // Insert the user into the event_members table
     const { data, error } = await supabase
       .from('event_members')

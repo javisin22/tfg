@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, User as UserIcon, Users as GroupIcon } from 'lucide-react';
+import { Search, User as UserIcon, Users as GroupIcon, Calendar } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { User } from '../types';
 import { useChat } from '../contexts/ChatContext';
+import { useEvents } from '../contexts/EventsContext';
 import { useRouter } from 'next/navigation';
 
 export default function SearchBar() {
@@ -16,6 +17,7 @@ export default function SearchBar() {
   const router = useRouter();
 
   const { setActiveChat, createChat, chats } = useChat();
+  const { handleEventSelected } = useEvents();
 
   const handleSearch = async (term: string) => {
     let endpoint = '';
@@ -36,6 +38,8 @@ export default function SearchBar() {
       let resSearchBar;
       if (pathname.startsWith('/home/chats')) {
         resSearchBar = await fetch(`/api/search/users&groups?term=${term}`);
+      } else if (pathname.startsWith('/home/events')) {
+        resSearchBar = await fetch(`/api/search/events?term=${term}`);
       } else {
         resSearchBar = await fetch(`/api/search/users?term=${term}`);
       }
@@ -101,9 +105,7 @@ export default function SearchBar() {
       if (result.isGroup) {
         chat = result;
       } else {
-        chat = specificResults.find(
-          (chat) => !chat.isGroup && chat.otherMembers.some((member) => member.userId === result.id)
-        );
+        chat = specificResults.find((chat) => !chat.isGroup && chat.otherMembers.some((member) => member.userId === result.id));
       }
 
       // Otherwise, create a new chat (only for private chats)
@@ -114,6 +116,9 @@ export default function SearchBar() {
       }
 
       setActiveChat(chat);
+    } else if (pathname.startsWith('/home/events')) {
+      // 🎃 it should show as the first event in the list, the one that the user clicked on
+      handleEventSelected(result);
     } else {
       // add else ifs for 'events' page and leave the else for the '/home' behavior
       // '/home' behavior
@@ -158,15 +163,11 @@ export default function SearchBar() {
                     className="w-6 h-6 rounded-full mr-2"
                   />
                 ) : result.avatar ? (
-                  <Image
-                    src={result.avatar}
-                    alt={result.name}
-                    width={24}
-                    height={24}
-                    className="w-6 h-6 rounded-full mr-2"
-                  />
+                  <Image src={result.avatar} alt={result.name} width={24} height={24} className="w-6 h-6 rounded-full mr-2" />
                 ) : result.isGroup ? (
                   <GroupIcon className="w-6 h-6 rounded-full mr-2" />
+                ) : result.date ? (
+                  <Calendar className="w-6 h-6 rounded-full mr-2" />
                 ) : (
                   <UserIcon className="w-6 h-6 rounded-full mr-2" />
                 )}
