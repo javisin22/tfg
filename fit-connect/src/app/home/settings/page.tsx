@@ -1,40 +1,113 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User, Eye, EyeOff } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [notifications, setNotifications] = useState(true);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    biography: '',
+    currentPassword: '',
+    newPassword: '',
+  });
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges]);
+
+  const handleNavigation = useCallback(() => {
+    if (hasUnsavedChanges) {
+      const confirmNavigation = window.confirm('You have unsaved changes. Do you want to leave without saving?');
+      if (!confirmNavigation) {
+        throw new Error('Navigation aborted');
+      }
+    }
+  }, [hasUnsavedChanges]);
+
+  useEffect(() => {
+    router.events = {
+      emit: () => {},
+      on: (event: string, handler: () => void) => {
+        if (event === 'routeChangeStart') {
+          window.addEventListener('popstate', handler);
+        }
+      },
+      off: (event: string, handler: () => void) => {
+        if (event === 'routeChangeStart') {
+          window.removeEventListener('popstate', handler);
+        }
+      },
+    };
+
+    router.events.on('routeChangeStart', handleNavigation);
+
+    return () => {
+      router.events.off('routeChangeStart', handleNavigation);
+    };
+  }, [router, handleNavigation]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSaveChanges = () => {
+    // Implement your save logic here
+    console.log('Saving changes:', formData);
+    setHasUnsavedChanges(false);
+  };
+
+  const handleDeleteAccount = () => {
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      // Implement your delete account logic here
+      console.log('Deleting account');
+    }
+  };
 
   return (
     <div className="h-[calc(100vh-120px)] overflow-y-auto">
       <div className="space-y-6 p-6">
-        {/* <!-- Account Settings Card --> */}
+        {/* Account Settings Card */}
         <div className="border rounded-lg shadow-lg p-6 bg-white">
           <h2 className="text-2xl font-bold text-black">Account Settings</h2>
           <div className="space-y-4 mt-4">
             <div className="flex items-center space-x-4">
-              {/* Avatar Section */}
               <User className="w-16 h-16 text-primary rounded-full border-4 border-black text-black" />
-              {/* Change Avatar Button */}
               <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Change avatar</button>
             </div>
 
-            {/* <!-- Username Section --> */}
             <div className="space-y-2">
               <label htmlFor="username" className="block text-sm font-medium text-black">
                 Username
               </label>
               <input
                 id="username"
+                value={formData.username}
+                onChange={handleInputChange}
                 placeholder="Current username"
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
               />
             </div>
 
-            {/* <!-- Email Section --> */}
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-black">
                 Email
@@ -42,26 +115,24 @@ export default function SettingsScreen() {
               <input
                 id="email"
                 type="email"
+                value={formData.email}
+                onChange={handleInputChange}
                 placeholder="Current email"
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
               />
             </div>
 
-            {/* Biography Section */}
             <div className="space-y-2">
               <label htmlFor="biography" className="block text-sm font-medium text-black">
                 Biography
               </label>
               <input
                 id="biography"
+                value={formData.biography}
+                onChange={handleInputChange}
                 placeholder="Current biography"
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
               />
-            </div>
-
-            {/* Save Changes Button */}
-            <div className="flex justify-start pt-6">
-              <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save Changes</button>
             </div>
           </div>
         </div>
@@ -70,15 +141,16 @@ export default function SettingsScreen() {
         <div className="border rounded-lg shadow-lg p-6 bg-white">
           <h2 className="text-2xl font-bold text-black">Security</h2>
           <div className="space-y-4 mt-4">
-            {/* Current Password Section */}
             <div className="space-y-2">
-              <label htmlFor="current-password" className="block text-sm font-medium text-black">
+              <label htmlFor="currentPassword" className="block text-sm font-medium text-black">
                 Current Password
               </label>
               <div className="relative">
                 <input
-                  id="current-password"
+                  id="currentPassword"
                   type={showCurrentPassword ? 'text' : 'password'}
+                  value={formData.currentPassword}
+                  onChange={handleInputChange}
                   placeholder="Current password"
                   className="w-full p-2 text-black border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
@@ -92,15 +164,16 @@ export default function SettingsScreen() {
               </div>
             </div>
 
-            {/* New Password Section */}
             <div className="space-y-2">
-              <label htmlFor="new-password" className="block text-sm font-medium text-black">
+              <label htmlFor="newPassword" className="block text-sm font-medium text-black">
                 New Password
               </label>
               <div className="relative">
                 <input
-                  id="new-password"
+                  id="newPassword"
                   type={showNewPassword ? 'text' : 'password'}
+                  value={formData.newPassword}
+                  onChange={handleInputChange}
                   placeholder="New password"
                   className="w-full p-2 text-black border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
@@ -113,15 +186,10 @@ export default function SettingsScreen() {
                 </button>
               </div>
             </div>
-
-            {/* Change Password Button */}
-            <div className="flex justify-start pt-6">
-              <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Change Password</button>
-            </div>
           </div>
         </div>
 
-        {/* <!-- Notifications Card --> */}
+        {/* Notifications Card */}
         <div className="border rounded-lg shadow-lg p-6 bg-white">
           <h2 className="text-2xl font-bold text-black">Notifications</h2>
           <div className="space-y-4 mt-4">
@@ -137,10 +205,24 @@ export default function SettingsScreen() {
                 id="notifications"
                 className="h-5 w-5 rounded-full border-gray-300 text-primary focus:ring-primary"
                 checked={notifications}
-                onChange={() => setNotifications(!notifications)}
+                onChange={() => {
+                  setNotifications(!notifications);
+                  setHasUnsavedChanges(true);
+                }}
               />
             </div>
           </div>
+        </div>
+
+        {/* Save Changes Button */}
+        <div className="flex justify-center">
+          <button
+            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400"
+            onClick={handleSaveChanges}
+            disabled={!hasUnsavedChanges}
+          >
+            Save Changes
+          </button>
         </div>
 
         {/* Delete Account */}
@@ -148,7 +230,9 @@ export default function SettingsScreen() {
           <h2 className="text-2xl font-bold text-black">Delete Account</h2>
           <p className="text-sm text-black mt-2">Once you delete this account, there's no going back. Please be certain.</p>
           <div className="flex justify-start mt-4">
-            <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete Account</button>
+            <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600" onClick={handleDeleteAccount}>
+              Delete Account
+            </button>
           </div>
         </div>
       </div>
