@@ -1,11 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Eye, EyeOff } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 export default function SettingsScreen() {
-  const router = useRouter();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [notifications, setNotifications] = useState(true);
@@ -19,66 +17,56 @@ export default function SettingsScreen() {
     newPassword: '',
   });
 
+  // Handle browser back/forward buttons and tab close
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
-        e.returnValue = '';
+        e.returnValue = ''; // This line is necessary for some browsers to show the confirmation dialog
+      }
+    };
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = ''; // This line is necessary for some browsers to show the confirmation dialog
+        if (confirm('You have unsaved changes. Do you want to leave without saving?')) {
+          setHasUnsavedChanges(false);
+          window.history.back();
+        } else {
+          window.history.pushState(null, '', window.location.pathname);
+        }
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, [hasUnsavedChanges]);
-
-  const handleNavigation = useCallback(() => {
-    if (hasUnsavedChanges) {
-      const confirmNavigation = window.confirm('You have unsaved changes. Do you want to leave without saving?');
-      if (!confirmNavigation) {
-        throw new Error('Navigation aborted');
-      }
-    }
-  }, [hasUnsavedChanges]);
-
-  useEffect(() => {
-    router.events = {
-      emit: () => {},
-      on: (event: string, handler: () => void) => {
-        if (event === 'routeChangeStart') {
-          window.addEventListener('popstate', handler);
-        }
-      },
-      off: (event: string, handler: () => void) => {
-        if (event === 'routeChangeStart') {
-          window.removeEventListener('popstate', handler);
-        }
-      },
-    };
-
-    router.events.on('routeChangeStart', handleNavigation);
-
-    return () => {
-      router.events.off('routeChangeStart', handleNavigation);
-    };
-  }, [router, handleNavigation]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
     setHasUnsavedChanges(true);
   };
 
-  const handleSaveChanges = () => {
-    // Implement your save logic here
-    console.log('Saving changes:', formData);
-    setHasUnsavedChanges(false);
+  const handleSaveChanges = async () => {
+    try {
+      // Implement save logic here
+      console.log('Saving changes:', formData);
+      setHasUnsavedChanges(false);
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      // Handle error (show error message to user)
+    }
   };
 
   const handleDeleteAccount = () => {
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      // Implement your delete account logic here
+      // Implement delete account logic here
       console.log('Deleting account');
     }
   };
