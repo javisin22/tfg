@@ -81,7 +81,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
                 alt={`${post.users.username}'s profile picture.`}
                 width="40"
                 height="40"
-                className="h-10 w-10 rounded-full"
+                className="h-10 w-10 rounded-full object-cover"
               />
               <div className="ml-4">
                 <p className="text-sm font-medium text-black">{post.users.username}</p>
@@ -113,9 +113,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
                 {post.comments.map((comment, index) => (
                   <div key={index} className="flex items-start space-x-2 mb-2">
                     <div className="h-6 w-6 rounded-full bg-gray-400 flex items-center justify-center">
-                      <span className="text-xs font-medium text-white">
-                        {comment.users.username.charAt(0).toUpperCase()}
-                      </span>{' '}
+                      <span className="text-xs font-medium text-white">{comment.users.username.charAt(0).toUpperCase()}</span>{' '}
                       {/*🎃 Poner la foto de perfil del usuario en lugar de su inicial?*/}
                     </div>
                     <div>
@@ -163,10 +161,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
           </div>
         ))}
       </div>
-      <button
-        className="fixed bottom-6 right-6 rounded-full w-12 h-12 bg-blue-500 text-white shadow-lg"
-        onClick={onCreatePost}
-      >
+      <button className="fixed bottom-6 right-6 rounded-full w-12 h-12 bg-blue-500 text-white shadow-lg" onClick={onCreatePost}>
         <Plus size={24} className="inline-block" />
       </button>
     </div>

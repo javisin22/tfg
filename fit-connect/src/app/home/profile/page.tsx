@@ -93,7 +93,7 @@ export default function ProfileScreen() {
               alt="Profile Picture"
               width={96}
               height={96}
-              className="h-24 w-24 rounded-full text-gray-700"
+              className="h-24 w-24 rounded-full text-gray-700 object-cover"
             />
           ) : (
             <User className="h-24 w-24 rounded-full text-gray-700" />
@@ -130,7 +130,7 @@ export default function ProfileScreen() {
                   alt="Profile Picture"
                   width={40}
                   height={40}
-                  className="h-10 w-10 rounded-full text-gray-700"
+                  className="h-10 w-10 rounded-full text-gray-700 object-cover"
                 />
               ) : (
                 <User className="h-10 w-10 rounded-full text-gray-700" />
@@ -145,10 +145,7 @@ export default function ProfileScreen() {
               <button className="p-2 rounded-full hover:bg-gray-200" onClick={() => handleEditPost(post)}>
                 <Pencil className="h-4 w-4 text-gray-600" />
               </button>
-              <button
-                className="p-2 rounded-full hover:bg-gray-200"
-                onClick={() => handleDeletePost(post.id)}
-              >
+              <button className="p-2 rounded-full hover:bg-gray-200" onClick={() => handleDeletePost(post.id)}>
                 <Trash2 className="h-4 w-4 text-gray-600" />
               </button>
             </div>
@@ -173,9 +170,7 @@ export default function ProfileScreen() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-6 space-y-4 w-[90%] max-w-lg">
             <h3 className="text-lg font-medium text-gray-900">Edit Post</h3>
-            <p className="text-sm text-gray-500">
-              Make changes to your post here. Click save when you're done.
-            </p>
+            <p className="text-sm text-gray-500">Make changes to your post here. Click save when you're done.</p>
             {/* 🎃 Settear un mínimo y máximo del textarea */}
             <textarea
               className="w-full h-24 p-2 border text-black border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"

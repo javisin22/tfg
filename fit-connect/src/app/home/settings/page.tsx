@@ -1,21 +1,46 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { User, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
+import { Eye, EyeOff, X, User } from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
 
 export default function SettingsScreen() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     username: '',
     email: '',
+    profilePicture: '',
     biography: '',
     currentPassword: '',
     newPassword: '',
   });
+
+  const supabase = createClient();
+
+  // Retrieve the user information from the server
+  useEffect(() => {
+    // Fetch user data from the server
+    fetch('/api/user/info')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) {
+          const { username, email, profilePicture, biography } = data.user;
+          setFormData({ ...formData, username, email, profilePicture, biography });
+          setImagePreview(profilePicture);
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching user data:', error);
+        // Handle error (show error message to user)
+      });
+  }, []);
 
   // Handle browser back/forward buttons and tab close
   useEffect(() => {
@@ -29,7 +54,7 @@ export default function SettingsScreen() {
     const handlePopState = (e: PopStateEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
-        e.returnValue = ''; // This line is necessary for some browsers to show the confirmation dialog
+        (e as any).returnValue = ''; // This line is necessary for some browsers to show the confirmation dialog
         if (confirm('You have unsaved changes. Do you want to leave without saving?')) {
           setHasUnsavedChanges(false);
           window.history.back();
@@ -53,20 +78,66 @@ export default function SettingsScreen() {
     setHasUnsavedChanges(true);
   };
 
+  const handleImageUpload = useCallback((file: File) => {
+    if (file) {
+      setImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+      setHasUnsavedChanges(true);
+    }
+  }, []);
+
+  const uploadImageToSupabase = async (file: File) => {
+    const fileName = `${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage.from('profile_pictures').upload(fileName, file);
+    if (error) {
+      console.error('Error uploading image:', error);
+      return null;
+    }
+
+    const publicUrl = supabase.storage.from('profile_pictures').getPublicUrl(fileName);
+    if (!publicUrl.data) {
+      console.error('Error getting public URL:');
+      return null;
+    }
+
+    console.log('Image uploaded has the publicUrl:', publicUrl.data.publicUrl);
+    return publicUrl.data.publicUrl;
+  };
+
   const handleSaveChanges = async () => {
     try {
-      // Implement save logic here
-      console.log('Saving changes:', formData);
+      let imageUrl = formData.profilePicture;
+      if (image) {
+        imageUrl = await uploadImageToSupabase(image);
+        if (!imageUrl) {
+          throw new Error('Error uploading image');
+        }
+      }
+
+      const response = await fetch('/api/user/updateInfo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, profilePicture: imageUrl }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error saving changes');
+      }
+
+      const data = await response.json();
+      console.log('Changes saved:', data);
+
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error saving changes:', error);
-      // Handle error (show error message to user)
     }
   };
 
   const handleDeleteAccount = () => {
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      // Implement delete account logic here
+      // Implement your delete account logic here
       console.log('Deleting account');
     }
   };
@@ -79,8 +150,46 @@ export default function SettingsScreen() {
           <h2 className="text-2xl font-bold text-black">Account Settings</h2>
           <div className="space-y-4 mt-4">
             <div className="flex items-center space-x-4">
-              <User className="w-16 h-16 text-primary rounded-full border-4 border-black text-black" />
-              <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Change avatar</button>
+              {imagePreview ? (
+                <div className="relative">
+                  <Image
+                    src={imagePreview}
+                    alt="Profile Picture"
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 rounded-full border-4 border-gray-800 object-cover"
+                  />
+                  <button
+                    className="absolute top-0 right-0 bg-white p-1 rounded-full shadow-md hover:bg-gray-100 transition-colors"
+                    onClick={() => {
+                      setImage(null);
+                      setImagePreview(null);
+                      setHasUnsavedChanges(true);
+                    }}
+                  >
+                    <X className="h-4 w-4 text-black" />
+                  </button>
+                </div>
+              ) : (
+                <User className="w-20 h-20 text-gray-800 rounded-full border-4 border-gray-800" />
+              )}
+              <label
+                htmlFor="image-upload"
+                className="relative cursor-pointer rounded-md bg-blue-100 hover:bg-blue-300 p-1 font-semibold text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 hover:text-primary-dark"
+              >
+                <span className="text-black">Change avatar</span>
+                <input
+                  id="image-upload"
+                  name="image-upload"
+                  type="file"
+                  className="sr-only"
+                  onChange={(e) => {
+                    const file = e.target.files ? e.target.files[0] : null;
+                    if (file) handleImageUpload(file);
+                  }}
+                  accept="image/*"
+                />
+              </label>
             </div>
 
             <div className="space-y-2">
