@@ -135,10 +135,26 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      // Implement your delete account logic here
-      console.log('Deleting account');
+      try {
+        const response = await fetch('/api/user/deleteUser', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+          throw new Error('Error deleting account');
+        }
+
+        const data = await response.json();
+        console.log('Account deleted:', data);
+
+        // Redirect the user to the login page ('/login')
+        window.location.href = '/login';
+      } catch (error) {
+        console.error('Error deleting account:', error);
+      }
     }
   };
 
