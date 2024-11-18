@@ -20,8 +20,8 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
       try {
         const res = await fetch('/api/posts/info');
         const { posts } = await res.json();
+        console.log(posts);
         setPosts(posts);
-        // console.log(posts);
       } catch (error) {
         console.error('Error fetching posts:', error);
       } finally {
