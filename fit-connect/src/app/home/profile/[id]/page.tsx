@@ -2,19 +2,35 @@
 
 import { useState, useEffect } from 'react';
 import { User, Heart, MessageSquareMore } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Post } from '../../../../types';
 import Loading from '../../../../components/Loading';
 
 export default function UserProfile() {
+  const router = useRouter();
   const { id } = useParams();
 
   const [userInfo, setUserInfo] = useState(null);
   const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
 
   useEffect(() => {
     if (!id) return; // Ensure userId is available
+
+    async function fetchLoggedInUserInfo() {
+      try {
+        const res = await fetch('/api/user/info');
+        const { user } = await res.json();
+        console.log('User Info:', user);
+        if (user.id == id) {
+          router.push('/home/profile');
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
 
     async function fetchUserInfo() {
       try {
@@ -22,6 +38,8 @@ export default function UserProfile() {
         const { user } = await res.json();
         console.log('User Info:', user);
         setUserInfo(user);
+        setIsFollowing(user.isFollowing);
+        setFollowersCount(user.followersCount);
       } catch (error) {
         console.error('Error fetching user info:', error);
       }
@@ -38,9 +56,25 @@ export default function UserProfile() {
       }
     }
 
+    fetchLoggedInUserInfo();
     fetchUserInfo();
     fetchUserPosts();
   }, [id]);
+
+  const toggleFollow = async () => {
+    try {
+      const action = isFollowing ? 'unfollow' : 'follow';
+      const res = await fetch(`/api/user/${id}/${action}`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setIsFollowing(!isFollowing);
+        setFollowersCount((prevCount) => (isFollowing ? prevCount - 1 : prevCount + 1));
+      }
+    } catch (error) {
+      console.error('Error toggling follow status:', error);
+    }
+  };
+
 
   if (!userInfo) {
     return <Loading />;
@@ -57,25 +91,35 @@ export default function UserProfile() {
               alt="Profile Picture"
               width={96}
               height={96}
-              className="h-24 w-24 rounded-full text-gray-700"
+              className="h-24 w-24 rounded-full text-gray-700 object-cover"
             />
           ) : (
             <User className="h-24 w-24 rounded-full text-gray-700" />
           )}
           <h2 className="text-2xl text-gray-500 font-bold text-primary">{userInfo.username}</h2>
           <p className="text-sm text-gray-500">{userInfo.biography}</p>
+          <button
+            onClick={toggleFollow}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              isFollowing
+                ? 'bg-white text-gray-900 border border-gray-300 hover:bg-gray-100'
+                : 'bg-blue-600 text-white hover:bg-blue-800'
+            }`}
+          >
+            {isFollowing ? 'Unfollow' : 'Follow'}
+          </button>
           <div className="flex space-x-6">
             <div className="text-center">
               <p className="text-xl font-semibold text-primary text-gray-400">{userPosts.length}</p>
-              <p className="text-sm text-gray-500">Posts</p>
+              <p className="text-sm text-gray-500">{userPosts.length === 1 ? 'Post' : 'Posts'}</p>
             </div>
             {/* Placeholder follower/following counts */}
             <div className="text-center">
-              <p className="text-xl font-semibold text-primary text-gray-400">1.2k</p>
+              <p className="text-xl font-semibold text-primary text-gray-400">{followersCount}</p>
               <p className="text-sm text-gray-500">Followers</p>
             </div>
             <div className="text-center">
-              <p className="text-xl font-semibold text-primary text-gray-400">567</p>
+              <p className="text-xl font-semibold text-primary text-gray-400">{userInfo.followingCount || 0}</p>
               <p className="text-sm text-gray-500">Following</p>
             </div>
           </div>
@@ -94,7 +138,7 @@ export default function UserProfile() {
                 alt="Profile Picture"
                 width={40}
                 height={40}
-                className="h-10 w-10 rounded-full text-gray-700"
+                className="h-10 w-10 rounded-full text-gray-700 object-cover"
               />
             ) : (
               <User className="h-10 w-10 rounded-full text-gray-700" />

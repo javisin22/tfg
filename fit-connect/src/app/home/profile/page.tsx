@@ -103,7 +103,7 @@ export default function ProfileScreen() {
           <div className="flex space-x-6">
             <div className="text-center">
               <p className="text-xl font-semibold text-primary text-gray-400">{userPosts.length}</p>
-              <p className="text-sm text-gray-500">Posts</p>
+              <p className="text-sm text-gray-500">{userPosts.length === 1 ? 'Post' : 'Posts'}</p>
             </div>
             <div className="text-center">
               <p className="text-xl font-semibold text-primary text-gray-400">1.2k</p>
