@@ -102,7 +102,7 @@ export default function UserProfile() {
             onClick={toggleFollow}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               isFollowing
-                ? 'bg-white text-gray-900 border border-gray-300 hover:bg-gray-100'
+                ? 'bg-red-500 text-white hover:bg-red-700'
                 : 'bg-blue-600 text-white hover:bg-blue-800'
             }`}
           >

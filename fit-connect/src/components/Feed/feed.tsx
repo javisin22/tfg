@@ -13,15 +13,18 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
   const [posts, setPosts] = useState<Post[]>([]); // 🎃 Fixear errores de tipo 'Post'
   const [newComment, setNewComment] = useState<Comment>();
   const [loading, setLoading] = useState(true);
+  const [likedPosts, setLikedPosts] = useState<string[]>([]);
 
   // Fetch posts from the API endpoint
   useEffect(() => {
     async function fetchPosts() {
       try {
         const res = await fetch('/api/posts/info');
-        const { posts } = await res.json();
+        const { posts, likedPosts } = await res.json();
         console.log(posts);
+        // console.log(likedPosts);
         setPosts(posts);
+        setLikedPosts(likedPosts);
       } catch (error) {
         console.error('Error fetching posts:', error);
       } finally {
@@ -67,6 +70,38 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
     }
   };
 
+  const handleLikePost = async (postId: string) => {
+    try {
+      const res = await fetch('/api/posts/like', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ postId }),
+      });
+
+      const data = await res.json();
+
+      console.log(data);
+
+      if (res.ok) {
+        if (data.action === 'liked') {
+          // Update the posts state to increment likes
+          setPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes + 1 } : post)));
+          // Add postId to likedPosts to prevent multiple likes
+          setLikedPosts((prevLikedPosts) => [...prevLikedPosts, postId]);
+        } else if (data.action === 'disliked') {
+          // Update the posts state to decrement likes
+          setPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes - 1 } : post)));
+          // Remove postId from likedPosts
+          setLikedPosts((prevLikedPosts) => prevLikedPosts.filter((id) => id !== postId));
+        }
+      }
+    } catch (error) {
+      console.error('Error liking/disliking post:', error);
+    }
+  };
+
   if (loading) return <Loading />;
 
   return (
@@ -79,9 +114,9 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
               <Image
                 src={post.users.profilePicture}
                 alt={`${post.users.username}'s profile picture.`}
-                width="40"
-                height="40"
-                className="h-10 w-10 rounded-full object-cover"
+                width="48"
+                height="48"
+                className="h-12 w-12 rounded-full object-cover"
               />
               <div className="ml-4">
                 <p className="text-sm font-medium text-black">{post.users.username}</p>
@@ -95,15 +130,17 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
             {/* Post like and comment numbers */}
             <div className="mt-4">
               <div className="flex items-center space-x-4">
-                <button className="text-gray-600 hover:text-gray-800">
-                  <Heart className="mr-2 h-4 w-4 inline-block" />
-                  {post.likes} Likes
-                  {/* 🎃 Likes aún no están implementados */}
+                <button className="text-gray-600 hover:text-gray-800" onClick={() => handleLikePost(post.id)}>
+                  <Heart
+                    className={`mr-2 h-4 w-4 inline-block ${likedPosts.includes(post.id) ? 'text-red-600' : ''}`}
+                    fill={likedPosts.includes(post.id) ? 'red' : 'none'}
+                  />
+                  {post.likes} {post.likes == 1 ? 'Like' : 'Likes'}
                 </button>
-                <button className="text-gray-600 hover:text-gray-800">
+                <span className="text-gray-600">
                   <MessageSquareMore className="mr-2 h-4 w-4 inline-block" />
-                  {post.comments.length} {post.comments.length > 1 ? 'Comments' : 'Comment'}
-                </button>
+                  {post.comments.length} {post.comments.length == 1 ? 'Comment' : 'Comments'}
+                </span>
               </div>
             </div>
             {/* Post comments */}
@@ -112,10 +149,13 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
                 <h4 className="text-sm font-medium text-black mb-2">Comments</h4>
                 {post.comments.map((comment, index) => (
                   <div key={index} className="flex items-start space-x-2 mb-2">
-                    <div className="h-6 w-6 rounded-full bg-gray-400 flex items-center justify-center">
-                      <span className="text-xs font-medium text-white">{comment.users.username.charAt(0).toUpperCase()}</span>{' '}
-                      {/*🎃 Poner la foto de perfil del usuario en lugar de su inicial?*/}
-                    </div>
+                    <Image
+                      src={comment.users.profilePicture}
+                      alt={`${comment.users.username}'s profile picture`}
+                      width="32"
+                      height="32"
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
                     <div>
                       <p className="text-sm font-medium text-black">{comment.users.username}</p>
                       <p className="text-sm text-gray-700">{comment.content}</p>
