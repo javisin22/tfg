@@ -32,8 +32,8 @@ export default function WorkoutsScreen() {
       {workouts.map((workout) => (
         <div key={workout.id} className="p-4 pb-8">
           {/* <div key={workout.id} className="p-4 border-b"> */}
-          <h1 className="text-xl font-semibold text-primary">{workout.name}</h1>
-          <p className="text-gray-400">{workout.description}</p>
+          <h1 className="text-2xl font-bold text-primary">{workout.name}</h1>
+          <p className="text-gray-300">{workout.description}</p>
           <hr className="my-4 opacity-40" />
           <ul>
             {workout.workout_exercises.slice(0, 4).map((workout_exercise) => (
@@ -51,9 +51,7 @@ export default function WorkoutsScreen() {
             )}
           </ul>
           <Link href={`/home/workouts/${workout.id}`}>
-            <button className="bg-gray-500 text-white font-medium py-2 px-4 rounded mt-4">
-              View full workout
-            </button>
+            <button className="bg-gray-500 hover:bg-gray-800 text-white font-medium py-2 px-4 rounded mt-4">View full workout</button>
           </Link>
         </div>
       ))}
@@ -61,7 +59,7 @@ export default function WorkoutsScreen() {
       {/* Create New Workout Button */}
       <div className="flex justify-center mt-10">
         <Link href="/home/workouts/new">
-          <button className="flex items-center px-4 py-2 bg-gray-900 hover:bg-black text-white rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2">
+          <button className="flex items-center px-4 py-2 bg-black hover:bg-gray-900 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2">
             <Plus size={24} />
             Create New Workout
           </button>

@@ -4,7 +4,7 @@ import { Heart, MessageSquareMore, Plus } from 'lucide-react';
 import Cookies from 'js-cookie';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-
+import { formatDistanceToNow } from 'date-fns';
 import Loading from '../Loading';
 import { Post, Comment } from '../../types';
 
@@ -120,6 +120,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
               />
               <div className="ml-4">
                 <p className="text-sm font-medium text-black">{post.users.username}</p>
+                <p className="text-sm text-gray-500">{formatDistanceToNow(new Date(post.postedAt), { addSuffix: true })}</p>
               </div>
             </div>
             {/* Post media */}

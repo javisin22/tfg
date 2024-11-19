@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { User, Heart, MessageSquareMore, Trash2, Pencil } from 'lucide-react';
 import Image from 'next/image';
 import Cookies from 'js-cookie';
+import { formatDistanceToNow } from 'date-fns';
 import { Post } from '../../../types';
 
 export default function ProfileScreen() {
@@ -11,6 +12,8 @@ export default function ProfileScreen() {
   const [userInfo, setUserInfo] = useState(null);
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followersCount, setFollowersCount] = useState(0);
 
   useEffect(() => {
     async function fetchUserInfo() {
@@ -18,6 +21,8 @@ export default function ProfileScreen() {
         const res = await fetch('/api/user/info');
         const { user } = await res.json();
         setUserInfo(user);
+        setFollowingCount(user.followingCount);
+        setFollowersCount(user.followersCount);
       } catch (error) {
         console.error('Error fetching user info:', error);
       }
@@ -106,11 +111,11 @@ export default function ProfileScreen() {
               <p className="text-sm text-gray-500">{userPosts.length === 1 ? 'Post' : 'Posts'}</p>
             </div>
             <div className="text-center">
-              <p className="text-xl font-semibold text-primary text-gray-400">1.2k</p>
-              <p className="text-sm text-gray-500">Followers</p>
+              <p className="text-xl font-semibold text-primary text-gray-400">{followersCount}</p>
+              <p className="text-sm text-gray-500">{followersCount === 1 ? 'Follower' : 'Followers'}</p>
             </div>
             <div className="text-center">
-              <p className="text-xl font-semibold text-primary text-gray-400">567</p>
+              <p className="text-xl font-semibold text-primary text-gray-400">{followingCount}</p>
               <p className="text-sm text-gray-500">Following</p>
             </div>
           </div>
@@ -137,8 +142,7 @@ export default function ProfileScreen() {
               )}
               <div>
                 <p className="text-sm font-medium text-black">{username}</p>
-                {/* 🎃 Cambiar tema de la fecha de publicación (atributo 'postedAt' en cada post de userPosts) */}
-                <p className="text-xs text-gray-500">2 hours ago</p>
+                <p className="text-xs text-gray-500">{formatDistanceToNow(new Date(post.postedAt), { addSuffix: true })}</p>
               </div>
             </div>
             <div className="flex space-x-2">
