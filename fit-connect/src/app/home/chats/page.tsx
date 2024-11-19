@@ -182,7 +182,7 @@ export default function ChatsScreen() {
       <div className="w-1/3 border rounded-lg shadow-md p-4 bg-white">
         <button
           onClick={() => setIsCreatingGroup(true)}
-          className="w-full mb-5 p-2 bg-black text-white rounded-md flex items-center justify-center"
+          className="w-full mb-5 p-2 bg-black hover:bg-gray-800 text-white rounded-md flex items-center justify-center"
         >
           <Plus className="h-4 w-4 mr-2" />
           Create New Group

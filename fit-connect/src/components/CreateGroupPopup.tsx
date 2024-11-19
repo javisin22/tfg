@@ -13,6 +13,34 @@ export default function CreateGroupPopup({
   onCreateGroup: (name: string, members: string[]) => void;
 }) {
   const [eventName, setEventName] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [users, setUsers] = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Fetch users from the API based on the search term
+    async function fetchUsers() {
+      try {
+        const response = await fetch(`/api/search/users?term=${searchTerm}`);
+        const data = await response.json();
+        setUsers(data.results || []);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    }
+
+    if (searchTerm) {
+      fetchUsers();
+    } else {
+      setUsers([]);
+    }
+  }, [searchTerm]);
+
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUsers((prevSelectedUsers) =>
+      prevSelectedUsers.includes(userId) ? prevSelectedUsers.filter((id) => id !== userId) : [...prevSelectedUsers, userId]
+    );
+  };
 
   const handleCreateGroup = () => {
     if (eventName && selectedUsers.length > 0) {
@@ -48,7 +76,7 @@ export default function CreateGroupPopup({
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full p-2 pl-10 border rounded text-black"
             />
-            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-2.5 h-5 w-5 text-black" />
           </div>
           <div className="max-h-60 overflow-y-auto">
             {users.map((user) => (
@@ -59,7 +87,7 @@ export default function CreateGroupPopup({
               >
                 <div className="w-8 h-8 rounded-full bg-gray-300 mr-3 text-black">
                   {user.profilePicture ? (
-                    <img src={user.profilePicture} alt={user.username} className="w-8 h-8 rounded-full" />
+                    <img src={user.profilePicture} alt={user.username} className="w-8 h-8 rounded-full object-cover" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
                       {user.username[0].toUpperCase()}
@@ -75,7 +103,7 @@ export default function CreateGroupPopup({
         <div className="flex justify-start p-4 border-t text-black">
           <button
             onClick={handleCreateGroup}
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-primary-dark"
+            className="px-4 py-2 bg-black hover:bg-gray-800 text-white rounded"
           >
             Create Group
           </button>
