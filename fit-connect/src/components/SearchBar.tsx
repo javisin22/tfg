@@ -111,8 +111,8 @@ export default function SearchBar() {
       // Otherwise, create a new chat (only for private chats)
       if (!chat) {
         console.log('Creating chat with:', result.id);
-        // chat = await createChat(result.id);
-        console.log('Chat created:', chat);
+        chat = await createChat(result.id);
+        // console.log('Chat created:', chat);
       }
 
       setActiveChat(chat);

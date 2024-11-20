@@ -20,7 +20,8 @@ export async function GET(req: Request) {
         `
       )
       .eq('chat_members.userId', userData.id) // Filter by the user's membership
-      .order('timeStamp', { referencedTable: 'messages', ascending: false });
+      .order('timeStamp', { referencedTable: 'messages', ascending: false })
+      .limit(1, { foreignTable: 'messages' }); // Limit to the latest message
 
     // Check if a chat is a group or individual chat.
     // For individual chats, find the other participant's name
@@ -60,6 +61,13 @@ export async function GET(req: Request) {
             // Update the chat name to the username of the other participant
             chat.name = userData.username;
           }
+        }
+
+        // Extract the last message as a single value
+        if (chat.lastMessage && chat.lastMessage.length > 0) {
+          chat.lastMessage = chat.lastMessage[0];
+        } else {
+          chat.lastMessage = null;
         }
         return chat;
       })
