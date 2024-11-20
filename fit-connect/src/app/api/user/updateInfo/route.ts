@@ -5,7 +5,8 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const supabase = createClient();
-    const { username, email, profilePicture, biography, currentPassword, newPassword } = await request.json();
+    // const { username, email, profilePicture, biography, currentPassword, newPassword } = await request.json();
+    const { username, profilePicture, biography, weight, height, currentPassword, newPassword } = await request.json();
 
     // Get user session data
     const { data: authData, error: authError } = await supabase.auth.getUser();
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
     // Update user details in the database
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .update({ username, email, profilePicture, biography })
+      .update({ username, profilePicture, biography, weight, height }) // email removed (for now)
       .eq('email', authData?.user?.email)
       .single();
 

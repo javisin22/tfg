@@ -15,9 +15,11 @@ export default function SettingsScreen() {
 
   const [formData, setFormData] = useState({
     username: '',
-    email: '',
+    // email: '',
     profilePicture: '',
     biography: '',
+    weight: '',
+    height: '',
     currentPassword: '',
     newPassword: '',
   });
@@ -31,8 +33,10 @@ export default function SettingsScreen() {
       .then((res) => res.json())
       .then((data) => {
         if (data.user) {
-          const { username, email, profilePicture, biography } = data.user;
-          setFormData({ ...formData, username, email, profilePicture, biography });
+          // const { username, email, profilePicture, biography } = data.user;
+          const { username, profilePicture, biography, weight, height } = data.user;
+          // setFormData({ ...formData, username, email, profilePicture, biography });
+          setFormData({ ...formData, username, profilePicture, biography, weight, height });
           setImagePreview(profilePicture);
         }
       })
@@ -221,7 +225,7 @@ export default function SettingsScreen() {
               />
             </div>
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-black">
                 Email
               </label>
@@ -233,7 +237,7 @@ export default function SettingsScreen() {
                 placeholder="Current email"
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
               />
-            </div>
+            </div> */}
 
             <div className="space-y-2">
               <label htmlFor="biography" className="block text-sm font-medium text-black">
@@ -246,6 +250,34 @@ export default function SettingsScreen() {
                 placeholder="Current biography"
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
               />
+            </div>
+
+            <div className='flex justify-start gap-8 w-40'>
+              <div className="space-y-2">
+                <label htmlFor="weight" className="block text-sm font-medium text-black">
+                  Weight
+                </label>
+                <input
+                  id="weight"
+                  type="number"
+                  value={formData.weight}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="height" className="block text-sm font-medium text-black">
+                  Height
+                </label>
+                <input
+                  id="height"
+                  type="number"
+                  value={formData.height}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
+                />
+              </div>
             </div>
           </div>
         </div>
