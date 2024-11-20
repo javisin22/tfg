@@ -142,56 +142,152 @@ export default function FullWorkoutPage() {
       <p className="text-lg text-gray-300 mb-16">{workout.description}</p>
 
       {/* Render the list of exercises for the workout */}
-      <table className="min-w-full divide-y divide-gray-200 mt-2">
-        <thead className="bg-gray-50">
-          <tr>
-            {isEditing && (
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200 mt-2">
+          <thead className="bg-gray-50">
+            <tr>
+              {isEditing && (
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+                ></th>
+              )}
+
               <th
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
-              ></th>
-            )}
+              >
+                Exercise
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+              >
+                Muscular Group
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+              >
+                Sets
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+              >
+                Reps
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+              >
+                Last Weight Used (lb)
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+              >
+                Duration (sec)
+              </th>
+            </tr>
+          </thead>
 
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
-            >
-              Exercise
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
-            >
-              Muscular Group
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
-            >
-              Sets
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
-            >
-              Reps
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
-            >
-              Last Weight Used (lb)
-            </th>
-          </tr>
-        </thead>
-
-        <tbody className="bg-white divide-y divide-gray-200">
-          {editedExercises.map((exercise, index) => (
-            <tr key={exercise.id}>
-              {isEditing && (
+          <tbody className="bg-white divide-y divide-gray-200">
+            {editedExercises.map((exercise, index) => (
+              <tr key={exercise.id}>
+                {isEditing && (
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => handleRemoveExercise(index)}
+                      className="text-gray-600 hover:text-gray-900 focus:outline-none"
+                    >
+                      <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
+                        <Minus className="h-4 w-4" />
+                      </div>
+                    </button>
+                  </td>
+                )}
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={exercise.exercises.name ?? ''}
+                      onChange={(e) => handleExerciseChange(index, 'name', e.target.value)}
+                      className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  ) : (
+                    exercise.exercises.name
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={exercise.exercises.muscularGroup ?? ''}
+                      onChange={(e) => handleExerciseChange(index, 'muscularGroup', e.target.value)}
+                      className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  ) : (
+                    exercise.exercises.muscularGroup
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={exercise.sets ?? ''}
+                      onChange={(e) => handleExerciseChange(index, 'sets', e.target.value)}
+                      className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  ) : (
+                    exercise.sets
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={exercise.reps ?? ''}
+                      onChange={(e) => handleExerciseChange(index, 'reps', e.target.value)}
+                      className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  ) : (
+                    exercise.reps
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={exercise.lastWeightUsed ?? ''}
+                      onChange={(e) => handleExerciseChange(index, 'lastWeightUsed', e.target.value)}
+                      className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  ) : (
+                    exercise.lastWeightUsed
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={exercise.duration ?? ''}
+                      onChange={(e) => handleExerciseChange(index, 'duration', e.target.value)}
+                      className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  ) : exercise.duration !== null ? (
+                    exercise.duration
+                  ) : (
+                    '-'
+                  )}
+                </td>
+              </tr>
+            ))}
+            {newExercises.map((exercise, index) => (
+              <tr key={index}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <button
-                    onClick={() => handleRemoveExercise(index)}
+                    onClick={() => handleRemoveNewExercise(index)}
                     className="text-gray-600 hover:text-gray-900 focus:outline-none"
                   >
                     <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
@@ -199,125 +295,51 @@ export default function FullWorkoutPage() {
                     </div>
                   </button>
                 </td>
-              )}
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                {isEditing ? (
+                <td className="px-6 py-4 whitespace-nowrap text-black">
                   <input
                     type="text"
                     value={exercise.exercises.name}
-                    onChange={(e) => handleExerciseChange(index, 'name', e.target.value)}
+                    onChange={(e) => handleNewExerciseChange(index, 'name', e.target.value)}
                     className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                ) : (
-                  exercise.exercises.name
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                {isEditing ? (
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
                   <input
                     type="text"
                     value={exercise.exercises.muscularGroup}
-                    onChange={(e) => handleExerciseChange(index, 'muscularGroup', e.target.value)}
+                    onChange={(e) => handleNewExerciseChange(index, 'muscularGroup', e.target.value)}
                     className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                ) : (
-                  exercise.exercises.muscularGroup
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                {isEditing ? (
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
                   <input
                     type="number"
                     value={exercise.sets}
-                    onChange={(e) => handleExerciseChange(index, 'sets', e.target.value)}
+                    onChange={(e) => handleNewExerciseChange(index, 'sets', e.target.value)}
                     className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                ) : (
-                  exercise.sets
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                {isEditing ? (
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
                   <input
                     type="number"
                     value={exercise.reps}
-                    onChange={(e) => handleExerciseChange(index, 'reps', e.target.value)}
+                    onChange={(e) => handleNewExerciseChange(index, 'reps', e.target.value)}
                     className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                ) : (
-                  exercise.reps
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                {isEditing ? (
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
                   <input
                     type="number"
                     value={exercise.lastWeightUsed}
-                    onChange={(e) => handleExerciseChange(index, 'lastWeightUsed', e.target.value)}
+                    onChange={(e) => handleNewExerciseChange(index, 'lastWeightUsed', e.target.value)}
                     className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                ) : (
-                  exercise.lastWeightUsed
-                )}
-              </td>
-            </tr>
-          ))}
-          {newExercises.map((exercise, index) => (
-            <tr key={index}>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <button
-                  onClick={() => handleRemoveNewExercise(index)}
-                  className="text-gray-600 hover:text-gray-900 focus:outline-none"
-                >
-                  <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
-                    <Minus className="h-4 w-4" />
-                  </div>
-                </button>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                <input
-                  type="text"
-                  value={exercise.exercises.name}
-                  onChange={(e) => handleNewExerciseChange(index, 'name', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                <input
-                  type="text"
-                  value={exercise.exercises.muscularGroup}
-                  onChange={(e) => handleNewExerciseChange(index, 'muscularGroup', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                <input
-                  type="number"
-                  value={exercise.sets}
-                  onChange={(e) => handleNewExerciseChange(index, 'sets', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                <input
-                  type="number"
-                  value={exercise.reps}
-                  onChange={(e) => handleNewExerciseChange(index, 'reps', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                <input
-                  type="number"
-                  value={exercise.lastWeightUsed}
-                  onChange={(e) => handleNewExerciseChange(index, 'lastWeightUsed', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {isEditing && (
         <div className="flex justify-center mt-4">
