@@ -12,8 +12,9 @@ export async function GET(req: Request) {
   }
 
   try {
-    const userData = await getUserInfo();
     const supabase = createClient();
+    const userData = await getUserInfo();
+    const userId = userData.id;
 
     // Fetch users
     const { data: users, error: usersError } = await supabase
@@ -26,11 +27,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Error fetching users' }, { status: 500 });
     }
 
+    // Filter out the current user
+    const filteredUsers = users.filter((user) => user.id !== userId);
+
     // Fetch chat IDs that the user is part of
-    const { data: chatIds, error: chatIdsError } = await supabase
-      .from('chat_members')
-      .select('chatId')
-      .eq('userId', userData.id);
+    const { data: chatIds, error: chatIdsError } = await supabase.from('chat_members').select('chatId').eq('userId', userId);
 
     if (chatIdsError) {
       console.error('Error fetching chat IDs:', chatIdsError);
@@ -52,7 +53,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Error fetching groups' }, { status: 500 });
     }
 
-    const results = [...users, ...groups];
+    const results = [...filteredUsers, ...groups];
     return NextResponse.json({ results });
   } catch (error) {
     console.error('Error performing search:', error);

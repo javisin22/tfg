@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Search, Check } from 'lucide-react';
+import Image from 'next/image';
 
 export default function CreateGroupPopup({
   isOpen,
@@ -15,7 +16,7 @@ export default function CreateGroupPopup({
   const [eventName, setEventName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState([]);
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<{ id: string; username: string; profilePicture?: string }[]>([]);
 
   useEffect(() => {
     // Fetch users from the API based on the search term
@@ -23,6 +24,7 @@ export default function CreateGroupPopup({
       try {
         const response = await fetch(`/api/search/users?term=${searchTerm}`);
         const data = await response.json();
+        console.log('Search data:', data.results);
         setUsers(data.results || []);
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -36,15 +38,20 @@ export default function CreateGroupPopup({
     }
   }, [searchTerm]);
 
-  const toggleUserSelection = (userId: string) => {
+  const toggleUserSelection = (user: { id: string; username: string; profilePicture?: string }) => {
     setSelectedUsers((prevSelectedUsers) =>
-      prevSelectedUsers.includes(userId) ? prevSelectedUsers.filter((id) => id !== userId) : [...prevSelectedUsers, userId]
+      prevSelectedUsers.some((u) => u.id === user.id)
+        ? prevSelectedUsers.filter((u) => u.id !== user.id)
+        : [...prevSelectedUsers, user]
     );
   };
 
   const handleCreateGroup = () => {
     if (eventName && selectedUsers.length > 0) {
-      onCreateGroup(eventName, selectedUsers);
+      onCreateGroup(
+        eventName,
+        selectedUsers.map((user) => user.id)
+      );
       onClose();
     }
   };
@@ -78,33 +85,66 @@ export default function CreateGroupPopup({
             />
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-black" />
           </div>
-          <div className="max-h-60 overflow-y-auto">
+          <div className="max-h-60 overflow-y-auto mb-4">
             {users.map((user) => (
               <div
                 key={user.id}
                 className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => toggleUserSelection(user.id)}
+                onClick={() => toggleUserSelection(user)}
               >
                 <div className="w-8 h-8 rounded-full bg-gray-300 mr-3 text-black">
                   {user.profilePicture ? (
-                    <img src={user.profilePicture} alt={user.username} className="w-8 h-8 rounded-full object-cover" />
+                    <Image
+                      src={user.profilePicture}
+                      alt={user.username}
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 rounded-full object-cover border-2 border-gray-500"
+                    />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full text-lg bg-gray-300 flex items-center justify-center border-2 border-gray-500">
                       {user.username[0].toUpperCase()}
                     </div>
                   )}
                 </div>
                 <span className="text-black">{user.username}</span>
-                {selectedUsers.includes(user.id) && <Check className="ml-auto h-5 w-5 text-green-500" />}
+                {selectedUsers.some((u) => u.id === user.id) && <Check className="ml-auto h-5 w-5 text-green-500" />}
               </div>
             ))}
           </div>
+          {selectedUsers.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-black mb-2">Selected Users</h3>
+              <div className="flex flex-wrap gap-2">
+                {selectedUsers.map((user) => (
+                  <div key={user.id} className="flex items-center p-2 bg-gray-200 rounded-full">
+                    <div className="w-8 h-8 rounded-full bg-gray-300 mr-2 text-black">
+                      {user.profilePicture ? (
+                        <Image
+                          src={user.profilePicture}
+                          alt={user.username}
+                          width={32}
+                          height={32}
+                          className="w-8 h-8 rounded-full object-cover border-2 border-gray-500"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full text-lg bg-gray-300 flex items-center justify-center border-2 border-gray-500">
+                          {user.username[0].toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-black">{user.username}</span>
+                    <button onClick={() => toggleUserSelection(user)} className="ml-2 text-red-500 hover:text-red-700">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex justify-start p-4 border-t text-black">
-          <button
-            onClick={handleCreateGroup}
-            className="px-4 py-2 bg-black hover:bg-gray-800 text-white rounded"
-          >
+          <button onClick={handleCreateGroup} className="px-4 py-2 bg-black hover:bg-gray-800 text-white rounded">
             Create Group
           </button>
         </div>

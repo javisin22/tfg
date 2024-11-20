@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { getUserInfo } from '@/utils/user';
 
 // api/search/users?term=...
 export async function GET(req: Request) {
@@ -12,6 +13,9 @@ export async function GET(req: Request) {
 
   try {
     const supabase = createClient();
+    const userData = await getUserInfo();
+    const userId = userData.id;
+
     const { data: users, error } = await supabase
       .from('users')
       .select('id, username, profilePicture')
@@ -22,7 +26,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Error fetching users' }, { status: 500 });
     }
 
-    return NextResponse.json({ results: users });
+    const filteredUsers = users.filter((user) => user.id !== userId);
+
+    return NextResponse.json({ results: filteredUsers });
   } catch (error) {
     console.error('Error performing search:', error);
     return NextResponse.json({ error: 'Error performing search' }, { status: 500 });

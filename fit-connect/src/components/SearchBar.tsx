@@ -160,10 +160,16 @@ export default function SearchBar() {
                     alt={result.username}
                     width={24}
                     height={24}
-                    className="w-6 h-6 rounded-full mr-2"
+                    className="w-6 h-6 rounded-full mr-2 object-cover"
                   />
                 ) : result.avatar ? (
-                  <Image src={result.avatar} alt={result.name} width={24} height={24} className="w-6 h-6 rounded-full mr-2" />
+                  <Image
+                    src={result.avatar}
+                    alt={result.name}
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 rounded-full mr-2 object-cover"
+                  />
                 ) : result.isGroup ? (
                   <GroupIcon className="w-6 h-6 rounded-full mr-2" />
                 ) : result.date ? (
