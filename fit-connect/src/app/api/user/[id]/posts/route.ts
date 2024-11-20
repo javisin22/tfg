@@ -1,5 +1,3 @@
-// api/user/[id]/posts/route.ts
-
 import { createClient } from '../../../../../app/utils/supabase/server';
 import { NextResponse } from 'next/server';
 
@@ -9,7 +7,21 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     const supabase = createClient();
     // Fetch user posts from the database using userId
-    const { data, error } = await supabase.from('posts').select('*').eq('userId', id);
+    const { data, error } = await supabase
+      .from('posts')
+      .select(
+        `
+        *,
+        comments (
+          *,
+          users (
+            username,
+            profilePicture
+          )
+        )
+      `
+      )
+      .eq('userId', id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 404 });

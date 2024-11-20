@@ -75,7 +75,6 @@ export default function UserProfile() {
     }
   };
 
-
   if (!userInfo) {
     return <Loading />;
   }
@@ -101,9 +100,7 @@ export default function UserProfile() {
           <button
             onClick={toggleFollow}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              isFollowing
-                ? 'bg-red-500 text-white hover:bg-red-700'
-                : 'bg-blue-600 text-white hover:bg-blue-800'
+              isFollowing ? 'bg-red-500 text-white hover:bg-red-700' : 'bg-blue-600 text-white hover:bg-blue-800'
             }`}
           >
             {isFollowing ? 'Unfollow' : 'Follow'}
@@ -153,13 +150,38 @@ export default function UserProfile() {
           <div className="flex space-x-4">
             <button className="flex items-center text-sm text-gray-500 hover:text-gray-700">
               <Heart className="h-4 w-4 mr-1" />
-              {post.likes} Likes
+              {post.likes} {post.likes == 1 ? 'Like' : 'Likes'}
             </button>
             <button className="flex items-center text-sm text-gray-500 hover:text-gray-700">
               <MessageSquareMore className="h-4 w-4 mr-1" />
-              {post.comments} Comments
+              {post.comments.length} {post.comments.length == 1 ? 'Comment' : 'Comments'}
             </button>
           </div>
+          {/* Post Comments */}
+          {post.comments && post.comments.length > 0 ? (
+            <div className="px-6 py-4 bg-gray-200 mt-4">
+              <h4 className="text-sm font-medium text-black mb-2">Comments</h4>
+              {post.comments.map((comment, index) => (
+                <div key={index} className="flex items-start space-x-2 mb-2">
+                  <Image
+                    src={comment.users.profilePicture}
+                    alt={`${comment.users.username}'s profile picture`}
+                    width="32"
+                    height="32"
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-black">{comment.users.username}</p>
+                    <p className="text-sm text-gray-700">{comment.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="px-6 py-4 bg-gray-200 mt-4">
+              <h4 className="text-sm font-medium text-black mb-2">No comments yet</h4>
+            </div>
+          )}
         </div>
       ))}
     </div>
