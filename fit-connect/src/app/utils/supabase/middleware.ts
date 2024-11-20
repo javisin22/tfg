@@ -33,10 +33,11 @@ export async function updateSession(request: NextRequest) {
 
   const {
     data: { user },
+    error
   } = await supabase.auth.getUser();
 
   if (
-    !user &&
+    (!user || error?.status === 401) &&
     !request.nextUrl.pathname.startsWith('/login') &&
     !request.nextUrl.pathname.startsWith('/auth')
   ) {
