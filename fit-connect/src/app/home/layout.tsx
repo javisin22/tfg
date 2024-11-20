@@ -91,7 +91,7 @@ export default function Layout({
                 </div>
                 {/* Search bar */}
                 <div className="flex-1 flex justify-center">
-                  <SearchBar />
+                  {pathname !== '/home/workouts' && pathname !== '/home/settings' && <SearchBar />}
                 </div>
                 {/* Logout button */}
                 <div className="hidden md:flex flex-1 justify-end">

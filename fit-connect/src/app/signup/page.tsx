@@ -13,44 +13,6 @@ export default function Signup() {
   const [repeatPassword, setRepeatPassword] = useState('');
   const [error, setError] = useState('');
 
-  // const handleSignup = (e: React.FormEvent) => {
-  //   e.preventDefault();
-
-  //   // Username validation
-  //   if (!username) {
-  //     setError('Username cannot be empty');
-  //     return;
-  //   }
-
-  //   // Email validation
-  //   if (!email.includes('@')) {
-  //     setError('Please enter a valid email address');
-  //     return;
-  //   }
-
-  //   // Password validation
-  //   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
-  //   if (!passwordRegex.test(password)) {
-  //     setError(
-  //       'Password must be at least 8 characters long, contain at least 1 capital letter and 1 digit'
-  //     );
-  //     return;
-  //   }
-
-  //   // Repeat password validation
-  //   if (password !== repeatPassword) {
-  //     setError('Passwords do not match');
-  //     return;
-  //   }
-
-  //   setError('');
-  //   console.log('Username: ', username);
-  //   console.log('Email: ', email);
-  //   console.log('Password: ', password);
-  //   console.log('Repeat Password: ', repeatPassword);
-  //   // Proceed with account creation logic
-  // };
-
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen">
       <div className="absolute top-0 right-0 mt-8 mr-8 text-lg font-bold">
