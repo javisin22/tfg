@@ -5,20 +5,35 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Mail } from 'lucide-react';
 
-export default function Login() {
+export default function RecoverPassword() {
   const [email, setEmail] = useState('');
   const [showPopup, setShowPopup] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handlePasswordRecovery = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.includes('@')) {
       setError('Please enter a valid email address');
       return;
     }
     setError('');
-    setShowPopup(true);
-    console.log('Email: ', email);
+
+    const res = await fetch('/api/auth/recover', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      setEmail('');
+      setShowPopup(true);
+    } else {
+      setError(data.error);
+    }
   };
 
   const closePopup = () => {
@@ -27,7 +42,10 @@ export default function Login() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <div className="absolute top-0 right-0 mt-8 mr-8 text-lg font-bold">
+      <div className="flex absolute top-0 right-0 mt-8 mr-8 text-lg font-bold gap-4">
+        <Link href="/login" className="text-white hover:underline">
+          Login
+        </Link>
         <Link href="/signup" className="text-white hover:underline">
           Sign Up
         </Link>
@@ -36,7 +54,7 @@ export default function Login() {
       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 mt-28">
         <Image src="/logo.jpeg" alt="Logo" width={150} height={150} />
       </div>
-      <form onSubmit={handleLogin} className="flex flex-col items-center w-80 mt-24">
+      <form onSubmit={handlePasswordRecovery} className="flex flex-col items-center w-80 mt-24">
         <div className="mb-2 flex items-center w-full justify-center">Enter your email address</div>
 
         <div className="mb-2 flex items-center w-full">
@@ -50,10 +68,7 @@ export default function Login() {
           />
         </div>
         {error && <div className="text-red-500 mt-2 w-full text-center">{error}</div>}
-        <button
-          type="submit"
-          className="mt-12 py-3 px-5 bg-blue-500 text-white rounded hover:bg-blue-600 font-bold"
-        >
+        <button type="submit" className="mt-12 py-3 px-5 bg-blue-500 text-white rounded hover:bg-blue-600 font-bold">
           Send verification email
         </button>
       </form>
@@ -65,10 +80,7 @@ export default function Login() {
             <p className="mb-4 text-black">
               A verification email has been sent to <span className="underline">{email}</span>.
             </p>
-            <button
-              onClick={closePopup}
-              className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
+            <button onClick={closePopup} className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600">
               Close
             </button>
           </div>
