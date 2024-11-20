@@ -8,7 +8,21 @@ export async function GET(req: Request) {
     const userData = await getUserInfo();
 
     const supabase = createClient();
-    const { data, error } = await supabase.from('posts').select('*').eq('userId', userData.id);
+    const { data, error } = await supabase
+      .from('posts')
+      .select(
+        `
+        *,
+        comments (
+          *,
+          users (
+            username,
+            profilePicture
+          )
+        )
+      `
+      )
+      .eq('userId', userData.id);
 
     if (error) {
       console.log('error:', error);

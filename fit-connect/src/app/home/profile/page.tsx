@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { User, Heart, MessageSquareMore, Trash2, Pencil } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { User, Heart, MessageSquareMore, Trash2, Pencil, Image as ImageIcon, X } from 'lucide-react';
 import Image from 'next/image';
 import Cookies from 'js-cookie';
 import { formatDistanceToNow } from 'date-fns';
 import { Post } from '../../../types';
+import { createClient } from '@/utils/supabase/client';
 
 export default function ProfileScreen() {
   const [username, setUsername] = useState('');
@@ -14,6 +15,10 @@ export default function ProfileScreen() {
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [followingCount, setFollowingCount] = useState(0);
   const [followersCount, setFollowersCount] = useState(0);
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const supabase = createClient();
 
   useEffect(() => {
     async function fetchUserInfo() {
@@ -46,24 +51,36 @@ export default function ProfileScreen() {
 
   const handleEditPost = (post: Post) => {
     setEditingPost(post);
+    setImagePreview(post.media);
   };
 
   const handleUpdatePost = async (updatedPost: Post) => {
     try {
+      let imageUrl = updatedPost.media;
+
+      if (image) {
+        imageUrl = await uploadImageToSupabase(image);
+        if (!imageUrl) {
+          throw new Error('Error uploading image');
+        }
+      }
+
       const res = await fetch(`/api/user/posts/update/${updatedPost.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updatedPost),
+        body: JSON.stringify({ ...updatedPost, media: imageUrl }),
       });
 
       if (!res.ok) {
         throw new Error('Failed to update post');
       }
 
-      setUserPosts(userPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post)));
+      setUserPosts(userPosts.map((post) => (post.id === updatedPost.id ? { ...updatedPost, media: imageUrl } : post)));
       setEditingPost(null);
+      setImage(null);
+      setImagePreview(null);
     } catch (error) {
       console.error('Error updating post:', error);
     }
@@ -85,6 +102,27 @@ export default function ProfileScreen() {
     } catch (error) {
       console.error('Error deleting post:', error);
     }
+  };
+
+  const handleImageUpload = useCallback((file: File) => {
+    if (file) {
+      setImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  }, []);
+
+  const uploadImageToSupabase = async (file: File) => {
+    const fileName = `${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage.from('post_media').upload(fileName, file);
+    if (error) {
+      console.error('Error uploading image:', error);
+    }
+
+    const publicUrl = supabase.storage.from('post_media').getPublicUrl(fileName);
+    console.log('Image uploaded has the publicUrl:', publicUrl.data?.publicUrl);
+    return publicUrl.data?.publicUrl;
   };
 
   return (
@@ -159,13 +197,38 @@ export default function ProfileScreen() {
           <div className="flex space-x-4">
             <button className="flex items-center text-sm text-gray-500 hover:text-gray-700">
               <Heart className="h-4 w-4 mr-1" />
-              {post.likes} Likes
+              {post.likes} {post.likes == 1 ? 'Like' : 'Likes'}
             </button>
             <button className="flex items-center text-sm text-gray-500 hover:text-gray-700">
               <MessageSquareMore className="h-4 w-4 mr-1" />
-              {post.comments} Comments
+              {post.comments.length} {post.comments.length == 1 ? 'Comment' : 'Comments'}
             </button>
           </div>
+          {/* Post Comments */}
+          {post.comments && post.comments.length > 0 ? (
+            <div className="px-6 py-4 bg-gray-200 mt-4">
+              <h4 className="text-sm font-medium text-black mb-2">Comments</h4>
+              {post.comments.map((comment, index) => (
+                <div key={index} className="flex items-start space-x-2 mb-2">
+                  <Image
+                    src={comment.users.profilePicture}
+                    alt={`${comment.users.username}'s profile picture`}
+                    width="32"
+                    height="32"
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-black">{comment.users.username}</p>
+                    <p className="text-sm text-gray-700">{comment.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="px-6 py-4 bg-gray-200 mt-4">
+              <h4 className="text-sm font-medium text-black mb-2">No comments yet</h4>
+            </div>
+          )}
         </div>
       ))}
 
@@ -175,14 +238,59 @@ export default function ProfileScreen() {
           <div className="bg-white rounded-lg p-6 space-y-4 w-[90%] max-w-lg">
             <h3 className="text-lg font-medium text-gray-900">Edit Post</h3>
             <p className="text-sm text-gray-500">Make changes to your post here. Click save when you're done.</p>
-            {/* 🎃 Settear un mínimo y máximo del textarea */}
             <textarea
               className="w-full h-24 p-2 border text-black border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               value={editingPost.description}
               onChange={(e) => setEditingPost({ ...editingPost, description: e.target.value })}
             />
-            <div className="flex justify-center items-center">
-              <Image src={editingPost.media} alt="Post" className=" rounded-md" width={400} height={300} />
+            <div
+              className="relative flex items-center justify-center border-2 border-dashed rounded-lg p-6 transition-colors h-64"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const file = e.dataTransfer.files[0];
+                if (file) handleImageUpload(file);
+              }}
+            >
+              {imagePreview ? (
+                <div className="relative w-full h-full">
+                  <Image src={imagePreview} alt="Uploaded" layout="fill" objectFit="contain" className="rounded-lg" />
+                  <button
+                    className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-md hover:bg-gray-100 transition-colors"
+                    onClick={() => {
+                      setImage(null);
+                      setImagePreview(null);
+                    }}
+                  >
+                    <X className="h-4 w-4 text-black" />
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <ImageIcon className="mx-auto h-12 w-12 text-black" />
+                  <div className="mt-4 flex text-sm leading-6 text-black">
+                    <label
+                      htmlFor="image-upload"
+                      className="relative cursor-pointer rounded-md bg-gray-300 font-semibold text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 hover:text-primary-dark"
+                    >
+                      <span>Upload a file</span>
+                      <input
+                        id="image-upload"
+                        name="image-upload"
+                        type="file"
+                        className="sr-only"
+                        onChange={(e) => {
+                          const file = e.target.files ? e.target.files[0] : null;
+                          if (file) handleImageUpload(file);
+                        }}
+                        accept="image/*"
+                      />
+                    </label>
+                    <p className="pl-1 text-gray-800">or drag and drop</p>
+                  </div>
+                  <p className="text-xs leading-5 text-gray-800">PNG, JPG, GIF up to 10MB</p>
+                </div>
+              )}
             </div>
             <div className="flex justify-end space-x-2">
               <button
