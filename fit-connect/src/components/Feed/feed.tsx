@@ -10,8 +10,8 @@ import { Post, Comment } from '../../types';
 
 export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
   const [username, setUsername] = useState('');
-  const [posts, setPosts] = useState<Post[]>([]); // 🎃 Fixear errores de tipo 'Post'
-  const [newComment, setNewComment] = useState<Comment>();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [newComment, setNewComment] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
 
@@ -22,9 +22,8 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
         const res = await fetch('/api/posts/info');
         const { posts, likedPosts } = await res.json();
         console.log(posts);
-        // console.log(likedPosts);
-        setPosts(posts);
-        setLikedPosts(likedPosts);
+        setPosts(posts || []);
+        setLikedPosts(likedPosts || []);
       } catch (error) {
         console.error('Error fetching posts:', error);
       } finally {
@@ -35,7 +34,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
     fetchPosts();
   }, []);
 
-  // Posting comment request handler´
+  // Posting comment request handler
   const postComment = async (postId: string, userId: string, content: string) => {
     try {
       const res = await fetch('/api/posts/comment', {
@@ -64,7 +63,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
         )
       );
 
-      setNewComment({ id: '', postId: '', userId: '', content: '' }); // Clear the input field
+      setNewComment(''); // Clear the input field
     } catch (error) {
       console.error('Error posting comment:', error);
     }
@@ -106,102 +105,108 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
 
   return (
     <div className="overflow-y-scroll h-[calc(100vh-120px)] relative">
-      <div className="space-y-6">
-        {posts.map((post) => (
-          <div key={post.id} className="border rounded-lg shadow-md p-4 bg-white">
-            <div className="flex items-center mb-4">
-              {/* Profile picture & username */}
-              <Image
-                src={post.users.profilePicture}
-                alt={`${post.users.username}'s profile picture.`}
-                width="48"
-                height="48"
-                className="h-12 w-12 rounded-full object-cover"
-              />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-black">{post.users.username}</p>
-                <p className="text-sm text-gray-500">{formatDistanceToNow(new Date(post.postedAt), { addSuffix: true })}</p>
+      {posts.length === 0 ? (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-gray-500 text-lg">You don't have any posts yet and none of your followers either.</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {posts.map((post) => (
+            <div key={post.id} className="border rounded-lg shadow-md p-4 bg-white">
+              <div className="flex items-center mb-4">
+                {/* Profile picture & username */}
+                <Image
+                  src={post.users.profilePicture}
+                  alt={`${post.users.username}'s profile picture.`}
+                  width="48"
+                  height="48"
+                  className="h-12 w-12 rounded-full object-cover"
+                />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-black">{post.users.username}</p>
+                  <p className="text-sm text-gray-500">{formatDistanceToNow(new Date(post.postedAt), { addSuffix: true })}</p>
+                </div>
               </div>
-            </div>
-            {/* Post media */}
-            <div>
-              <Image src={post?.media} alt="Post" className="rounded-md mb-4" width="200" height="200" />
-              <p className="text-sm text-gray-700">{post.description}</p>
-            </div>
-            {/* Post like and comment numbers */}
-            <div className="mt-4">
-              <div className="flex items-center space-x-4">
-                <button className="text-gray-600 hover:text-gray-800" onClick={() => handleLikePost(post.id)}>
-                  <Heart
-                    className={`mr-2 h-4 w-4 inline-block ${likedPosts.includes(post.id) ? 'text-red-600' : ''}`}
-                    fill={likedPosts.includes(post.id) ? 'red' : 'none'}
-                  />
-                  {post.likes} {post.likes == 1 ? 'Like' : 'Likes'}
-                </button>
-                <span className="text-gray-600">
-                  <MessageSquareMore className="mr-2 h-4 w-4 inline-block" />
-                  {post.comments.length} {post.comments.length == 1 ? 'Comment' : 'Comments'}
-                </span>
+              {/* Post media */}
+              <div>
+                <Image src={post?.media} alt="Post" className="rounded-md mb-4" width="200" height="200" />
+                <p className="text-sm text-gray-700">{post.description}</p>
               </div>
-            </div>
-            {/* Post comments */}
-            {post.comments && post.comments.length > 0 ? (
-              <div className="px-6 py-4 bg-gray-200 mt-4">
-                <h4 className="text-sm font-medium text-black mb-2">Comments</h4>
-                {post.comments.map((comment, index) => (
-                  <div key={index} className="flex items-start space-x-2 mb-2">
-                    <Image
-                      src={comment.users.profilePicture}
-                      alt={`${comment.users.username}'s profile picture`}
-                      width="32"
-                      height="32"
-                      className="h-8 w-8 rounded-full object-cover"
+              {/* Post like and comment numbers */}
+              <div className="mt-4">
+                <div className="flex items-center space-x-4">
+                  <button className="text-gray-600 hover:text-gray-800" onClick={() => handleLikePost(post.id)}>
+                    <Heart
+                      className={`mr-2 h-4 w-4 inline-block ${likedPosts.includes(post.id) ? 'text-red-600' : ''}`}
+                      fill={likedPosts.includes(post.id) ? 'red' : 'none'}
                     />
-                    <div>
-                      <p className="text-sm font-medium text-black">{comment.users.username}</p>
-                      <p className="text-sm text-gray-700">{comment.content}</p>
+                    {post.likes} {post.likes == 1 ? 'Like' : 'Likes'}
+                  </button>
+                  <span className="text-gray-600">
+                    <MessageSquareMore className="mr-2 h-4 w-4 inline-block" />
+                    {post.comments.length} {post.comments.length == 1 ? 'Comment' : 'Comments'}
+                  </span>
+                </div>
+              </div>
+              {/* Post comments */}
+              {post.comments && post.comments.length > 0 ? (
+                <div className="px-6 py-4 bg-gray-200 mt-4">
+                  <h4 className="text-sm font-medium text-black mb-2">Comments</h4>
+                  {post.comments.map((comment, index) => (
+                    <div key={index} className="flex items-start space-x-2 mb-2">
+                      <Image
+                        src={comment.users.profilePicture}
+                        alt={`${comment.users.username}'s profile picture`}
+                        width="32"
+                        height="32"
+                        className="h-8 w-8 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-black">{comment.users.username}</p>
+                        <p className="text-sm text-gray-700">{comment.content}</p>
+                      </div>
                     </div>
+                  ))}
+                  <div className="mt-4 flex items-center space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Add a comment..."
+                      className="flex-1 px-3 py-2 border rounded-md text-black"
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                    />
+                    <button
+                      className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
+                      onClick={() => postComment(post.id, post.userId, newComment)}
+                    >
+                      Post
+                    </button>
                   </div>
-                ))}
-                <div className="mt-4 flex items-center space-x-2">
-                  <input
-                    type="text"
-                    placeholder="Add a comment..."
-                    className="flex-1 px-3 py-2 border rounded-md text-black"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                  />
-                  <button
-                    className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
-                    onClick={() => postComment(post.id, post.userId, newComment)}
-                  >
-                    Post
-                  </button>
                 </div>
-              </div>
-            ) : (
-              <div className="px-6 py-4 bg-gray-200 mt-4">
-                <h4 className="text-sm font-medium text-black mb-2">No comments yet</h4>
-                <div className="mt-4 flex items-center space-x-2">
-                  <input
-                    type="text"
-                    placeholder="Add a comment..."
-                    className="flex-1 px-3 py-2 border rounded-md text-black"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                  />
-                  <button
-                    className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
-                    onClick={() => postComment(post.id, post.userId, newComment)}
-                  >
-                    Post
-                  </button>
+              ) : (
+                <div className="px-6 py-4 bg-gray-200 mt-4">
+                  <h4 className="text-sm font-medium text-black mb-2">No comments yet</h4>
+                  <div className="mt-4 flex items-center space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Add a comment..."
+                      className="flex-1 px-3 py-2 border rounded-md text-black"
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                    />
+                    <button
+                      className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
+                      onClick={() => postComment(post.id, post.userId, newComment)}
+                    >
+                      Post
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
       <button className="fixed bottom-6 right-6 rounded-full w-12 h-12 bg-blue-500 text-white shadow-lg" onClick={onCreatePost}>
         <Plus size={24} className="inline-block" />
       </button>
