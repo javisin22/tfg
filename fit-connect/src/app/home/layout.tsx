@@ -8,6 +8,7 @@ import Logout from '../../components/Logout';
 import SearchBar from '../../components/SearchBar';
 import { ChatProvider } from '../../contexts/ChatContext';
 import { EventsProvider } from '../../contexts/EventsContext';
+import Cookies from 'js-cookie';
 
 export default function Layout({
   children,
@@ -15,11 +16,15 @@ export default function Layout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const [role, setRole] = useState('user');
   const [activeTab, setActiveChat] = useState<string>(pathname.split('/')[2] || 'home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     setActiveChat(pathname.split('/')[2] || 'home');
+    const userRole = Cookies.get('role') || 'user';
+    setRole(userRole);
+    console.log('Role:', userRole);
   }, [pathname]);
 
   const menuItems = [
@@ -30,6 +35,14 @@ export default function Layout({
     { label: 'Events', icon: Calendar, href: '/home/events' },
     { label: 'Settings', icon: Settings, href: '/home/settings' },
   ];
+
+  const adminMenuItems = [
+    { label: 'Manage Users', icon: User, href: '/home/admin/users' },
+    { label: 'Manage Posts', icon: HomeIcon, href: '/home/admin/posts' },
+    { label: 'Manage Events', icon: Calendar, href: '/home/admin/events' },
+  ];
+
+  const finalMenuItems = role === 'admin' ? [...menuItems, ...adminMenuItems] : menuItems;
 
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -54,18 +67,23 @@ export default function Layout({
               </button>
             </div>
             <nav className="space-y-2">
-              {menuItems.map((item) => (
-                <Link href={item.href} key={item.label}>
-                  <button
-                    className={`w-full text-lg text-left py-2 px-4 rounded-md ${
-                      pathname === item.href ? 'bg-gray-200 bg-opacity-80 text-black' : ''
-                    }`}
-                    onClick={handleMenuItemClick}
-                  >
-                    <item.icon className="inline-block w-5 h-5 mr-2" />
-                    {item.label}
-                  </button>
-                </Link>
+              {finalMenuItems.map((item) => (
+                <div key={item.label}>
+                  <Link href={item.href}>
+                    <button
+                      className={`w-full text-lg text-left py-2 px-4 rounded-md ${
+                        pathname === item.href ? 'bg-gray-200 bg-opacity-80 text-black' : ''
+                      }`}
+                      onClick={handleMenuItemClick}
+                    >
+                      <item.icon className="inline-block w-5 h-5 mr-2" />
+                      {item.label}
+                    </button>
+                  </Link>
+
+                  {/* Add a horizontal separator for the admin options */}
+                  {role === 'admin' && item.label === 'Settings' && <hr className="my-4 border-gray-600" />}
+                </div>
               ))}
             </nav>
             <div className="mt-auto md:hidden ml-3">

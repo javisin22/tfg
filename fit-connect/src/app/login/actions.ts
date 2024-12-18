@@ -30,7 +30,7 @@ export async function login(formData: FormData) {
   // Fetch the user's username
   const { data: user, error: userError } = await supabase
     .from('users')
-    .select('username')
+    .select('username, role')
     .eq('email', session?.user?.email)
     .single();
 
@@ -40,6 +40,8 @@ export async function login(formData: FormData) {
   }
 
   cookies().set('username', user?.username, { path: '/' });
+  cookies().set('role', user?.role, { path: '/' });
+
 
   revalidatePath('/', 'layout');
   redirect('/');
