@@ -109,10 +109,10 @@ export default function FullWorkoutPage() {
       {
         id: null,
         exercises: { name: '', muscularGroup: '' },
-        sets: 0,
-        reps: 0,
-        lastWeightUsed: 0,
-        duration: 0,
+        sets: null,
+        reps: null,
+        lastWeightUsed: null,
+        duration: null,
       },
     ]);
   };
@@ -332,6 +332,14 @@ export default function FullWorkoutPage() {
                     type="number"
                     value={exercise.lastWeightUsed}
                     onChange={(e) => handleNewExerciseChange(index, 'lastWeightUsed', e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  <input
+                    type="number"
+                    value={exercise.duration}
+                    onChange={(e) => handleNewExerciseChange(index, 'duration', e.target.value)}
                     className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </td>
