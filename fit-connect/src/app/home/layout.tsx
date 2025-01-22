@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Calendar, Dumbbell, HomeIcon, MessageCircle, Settings, User, X, Menu } from 'lucide-react';
+import { Calendar, Dumbbell, HomeIcon, MessageCircle, Settings, User, X, Menu, ShieldPlus } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Logout from '../../components/Logout';
@@ -17,15 +17,8 @@ export default function Layout({
 }>) {
   const pathname = usePathname();
   const [role, setRole] = useState('user');
-  const [activeTab, setActiveChat] = useState<string>(pathname.split('/')[2] || 'home');
+  const [activeTab, setActiveTab] = useState<string>(pathname.split('/')[2] || 'home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    setActiveChat(pathname.split('/')[2] || 'home');
-    const userRole = Cookies.get('role') || 'user';
-    setRole(userRole);
-    console.log('Role:', userRole);
-  }, [pathname]);
 
   const menuItems = [
     { label: 'Home', icon: HomeIcon, href: '/home' },
@@ -43,6 +36,25 @@ export default function Layout({
   ];
 
   const finalMenuItems = role === 'admin' ? [...menuItems, ...adminMenuItems] : menuItems;
+
+  // Determine the active tab based on the pathname and menu
+  useEffect(() => {
+    const userRole = Cookies.get('role') || 'user';
+    setRole(userRole);
+
+    // Extract the path segment to determine the active tab
+    const pathSegment = pathname.split('/')[3] || pathname.split('/')[2] || 'home';
+
+    // Check if the pathSegment belongs to `adminMenuItems`
+    const isAdminItem = adminMenuItems.some((item) => item.href.includes(`/home/admin/${pathSegment}`));
+
+    // Set the active tab based on the appropriate segment
+    if (isAdminItem) {
+      setActiveTab(`${pathSegment} (admin)`);
+    } else {
+      setActiveTab(pathname.split('/')[2] || 'home');
+    }
+  }, [pathname]);
 
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -76,7 +88,14 @@ export default function Layout({
                       }`}
                       onClick={handleMenuItemClick}
                     >
-                      <item.icon className="inline-block w-5 h-5 mr-2" />
+                      <div className="relative inline-block w-6 h-6 mr-2">
+                        {/* Main icon */}
+                        <item.icon className="inline-block w-5 h-5 mr-2" />
+                        {/* Shield icon for admin items */}
+                        {role === 'admin' && adminMenuItems.some((adminItem) => adminItem.label === item.label) && (
+                          <ShieldPlus className="absolute w-4 h-4 -top-1 -right-1" />
+                        )}
+                      </div>
                       {item.label}
                     </button>
                   </Link>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Search, Check, X } from 'lucide-react';
 import Image from 'next/image';
 
+// 🎃 Move the interfaces to separate files in order to include them then
 interface User {
   id: string;
   username: string;
