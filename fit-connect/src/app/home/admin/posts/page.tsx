@@ -5,6 +5,17 @@ import { Search, Check, X } from 'lucide-react';
 import Image from 'next/image';
 
 // 🎃 Move the interfaces to separate files in order to include them then
+interface Comment {
+  id: string;
+  userId: string;
+  postId: string;
+  postedAt?: string;
+  content: string;
+  users?: {
+    username: string;
+  };
+}
+
 interface Post {
   id: string;
   description: string;
@@ -14,12 +25,14 @@ interface Post {
   users?: {
     username: string;
   };
+  comments: Comment[];
 }
 
 export default function PostsAdminPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPosts, setSelectedPosts] = useState<Post[]>([]);
+  const [selectedComments, setSelectedComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -53,6 +66,16 @@ export default function PostsAdminPage() {
     setSelectedPosts((prevSelected) => prevSelected.filter((p) => p.id !== post.id));
   };
 
+  const toggleCommentSelection = (comment: Comment) => {
+    setSelectedComments((prevSelected) =>
+      prevSelected.some((c) => c.id === comment.id) ? prevSelected.filter((c) => c.id !== comment.id) : [...prevSelected, comment]
+    );
+  };
+
+  const removeSelectedComment = (comment: Comment) => {
+    setSelectedComments((prevSelected) => prevSelected.filter((c) => c.id !== comment.id));
+  };
+
   async function deleteSelectedPosts() {
     if (selectedPosts.length === 0) return;
 
@@ -79,6 +102,40 @@ export default function PostsAdminPage() {
     }
   }
 
+  async function deleteSelectedComments() {
+    if (selectedComments.length === 0) return;
+
+    // Extract the IDs of the selected comments
+    const commentIds = selectedComments.map((comment) => comment.id);
+
+    try {
+      const res = await fetch('/api/admin/comments/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentIds }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        alert(`Error deleting comments: ${errorData.error || 'Unknown error'}`);
+        return;
+      }
+
+      // Remove the deleted comments from the current list
+      setPosts((prev) =>
+        prev.map((post) => ({
+          ...post,
+          comments: post.comments.filter((c) => !commentIds.includes(c.id)),
+        }))
+      );
+
+      // Clear the selected comments
+      setSelectedComments([]);
+    } catch (error) {
+      console.error('Error deleting comments:', error);
+    }
+  }
+
   return (
     <div className="p-4 text-white">
       <h1 className="text-2xl font-bold mb-4">Manage Posts</h1>
@@ -96,7 +153,6 @@ export default function PostsAdminPage() {
       </div>
 
       {isLoading && <p className="text-gray-300">Loading posts...</p>}
-
       {!isLoading && posts.length === 0 && <p className="text-gray-300">No posts found.</p>}
 
       {/* Posts List */}
@@ -104,37 +160,69 @@ export default function PostsAdminPage() {
         {posts.map((post) => {
           const isSelected = selectedPosts.some((p) => p.id === post.id);
           return (
-            <div
-              key={post.id}
-              className="flex gap-4 p-4 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
-              onClick={() => togglePostSelection(post)}
-            >
-              {/* Media Preview */}
-              <div className="w-20 h-20 bg-gray-200 rounded overflow-hidden flex-shrink-0">
-                {post.media ? (
-                  <Image src={post.media} alt="Post media" width={80} height={80} className="object-cover w-full h-full" />
-                ) : (
-                  <div className="flex items-center justify-center w-full h-full text-gray-500 text-sm">No image</div>
-                )}
-              </div>
-
-              {/* Description & Info */}
-              <div className="flex-1">
-                <div className="text-sm text-black break-words line-clamp-2">
-                  {post.description || '[No description provided]'}
+            <div key={post.id} className="p-4 border-b last:border-b-0 hover:bg-gray-50">
+              {/* Post row */}
+              <div className="flex gap-4 cursor-pointer" onClick={() => togglePostSelection(post)}>
+                {/* Media Preview */}
+                <div className="w-20 h-20 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                  {post.media ? (
+                    <Image src={post.media} alt="Post media" width={80} height={80} className="object-cover w-full h-full" />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full text-gray-500 text-sm">No image</div>
+                  )}
                 </div>
-                <p className="text-xs text-gray-600 mt-1">Author: {post.users?.username || 'Unknown'}</p>
-                {post.postedAt && (
-                  <p className="text-xs text-gray-600">
-                    Posted at: {new Date(post.postedAt).toLocaleDateString()} {new Date(post.postedAt).toLocaleTimeString()}
+
+                {/* Description & Info */}
+                <div className="flex-1">
+                  <div className="text-sm text-black break-words line-clamp-2">
+                    {post.description || '[No description provided]'}
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1">
+                    <u>Author:</u> {post.users?.username || 'Unknown'}
                   </p>
+                  {post.postedAt && (
+                    <p className="text-xs text-gray-600">
+                      <u>Posted at:</u> {new Date(post.postedAt).toLocaleDateString()}{' '}
+                      {new Date(post.postedAt).toLocaleTimeString()}
+                    </p>
+                  )}
+                </div>
+
+                {/* Selection Check icon */}
+                {isSelected && (
+                  <div className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500" />
+                  </div>
                 )}
               </div>
 
-              {/* Selection Check icon */}
-              {isSelected && (
-                <div className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500" />
+              {/* Post comments (if any) */}
+              {post.comments && post.comments.length > 0 && (
+                <div className="mt-2 ml-12 border-l border-gray-200 pl-4">
+                  <p className="text-sm font-bold text-gray-500 mb-1">Comments:</p>
+                  {post.comments.map((comment, idx) => {
+                    const commentSelected = selectedComments.some((c) => c.id === comment.id);
+                    return (
+                      <div
+                        key={comment.id}
+                        className={`flex justify-between items-center text-sm mb-2 cursor-pointer ${idx !== 0 ? 'mt-4' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Stop the onClick from also toggling the entire post
+                          toggleCommentSelection(comment);
+                        }}
+                      >
+                        <div>
+                          <p className="text-black break-words">{comment.content}</p>
+                          <p className="text-xs text-gray-600">
+                            By: <span className="italic font-bold">{comment.users?.username || 'Unknown'}</span> on{' '}
+                            {comment.postedAt ? new Date(comment.postedAt).toLocaleString() : ''}
+                          </p>
+                        </div>
+                        {/* Checkmark if selected */}
+                        {commentSelected && <Check className="h-4 w-4 text-blue-500" />}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -165,8 +253,31 @@ export default function PostsAdminPage() {
         </div>
       )}
 
-      {/* Delete Button */}
-      <div className="flex justify-start">
+      {/* Selected Comments */}
+      {selectedComments.length > 0 && (
+        <div className="mb-4 bg-white p-4 rounded text-black">
+          <h3 className="text-lg font-semibold mb-2">Selected Comments</h3>
+          <div className="flex flex-wrap gap-2">
+            {selectedComments.map((comment) => (
+              <div key={comment.id} className="flex items-center p-2 bg-gray-200 rounded-full">
+                <span className="truncate max-w-[200px] mr-1">{comment.content || '[No text]'}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeSelectedComment(comment);
+                  }}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex gap-4">
         <button
           onClick={deleteSelectedPosts}
           disabled={selectedPosts.length === 0}
@@ -175,6 +286,16 @@ export default function PostsAdminPage() {
           } text-white`}
         >
           Delete Selected Posts
+        </button>
+
+        <button
+          onClick={deleteSelectedComments}
+          disabled={selectedComments.length === 0}
+          className={`px-4 py-2 rounded ${
+            selectedComments.length === 0 ? 'bg-gray-500 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'
+          } text-white`}
+        >
+          Delete Selected Comments
         </button>
       </div>
     </div>

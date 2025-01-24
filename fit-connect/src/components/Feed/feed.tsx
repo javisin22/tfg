@@ -35,7 +35,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
   }, []);
 
   // Posting comment request handler
-  const postComment = async (postId: string, userId: string, content: string) => {
+  const postComment = async (postId: string, content: string) => {
     try {
       const res = await fetch('/api/posts/comment', {
         method: 'POST',
@@ -44,12 +44,11 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
         },
         body: JSON.stringify({
           postId: postId,
-          userId: userId,
           content: content,
         }),
       });
-      const data = await res.json();
-      console.log(data);
+      const { comment } = await res.json();
+      console.log(comment);
 
       // Update the posts state to include the new comment
       setPosts((prevPosts) =>
@@ -57,7 +56,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
           post.id === postId
             ? {
                 ...post,
-                comments: [...post.comments, { userId, content, users: { username: username } }],
+                comments: [...post.comments, comment],
               }
             : post
         )
@@ -177,7 +176,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
                     />
                     <button
                       className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
-                      onClick={() => postComment(post.id, post.userId, newComment)}
+                      onClick={() => postComment(post.id, newComment)}
                     >
                       Post
                     </button>
@@ -196,7 +195,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
                     />
                     <button
                       className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
-                      onClick={() => postComment(post.id, post.userId, newComment)}
+                      onClick={() => postComment(post.id, newComment)}
                     >
                       Post
                     </button>

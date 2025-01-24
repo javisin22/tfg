@@ -6,10 +6,8 @@ export async function middleware(request: NextRequest) {
   let supabaseResponse = await updateSession(request);
 
   // 2) Extract the role from cookies
-  console.log('Cookies:', request.cookies.getAll());
   const role = request.cookies.get('role')?.value || 'user';
 
-  console.log('Role:', role);
 
   // 3) Check if user is visiting an admin page
   if (request.nextUrl.pathname.startsWith('/home/admin') && role !== 'admin') {
