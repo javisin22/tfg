@@ -23,15 +23,16 @@ export async function GET(req: Request) {
       .order('timeStamp', { referencedTable: 'messages', ascending: false })
       .limit(1, { foreignTable: 'messages' }); // Limit to the latest message
 
-    // Check if a chat is a group or individual chat.
-    // For individual chats, find the other participant's name
-    // and use it as the chat name.
+    if (chatsError) {
+      console.error('Error fetching chats:', chatsError);
+      return NextResponse.json({ error: chatsError.message }, { status: 500 });
+    }
 
-    // Process the data to update the name for private chats
+    // Process the data to update the name for private chats and set `isInvitation` if joinedAt is null
     const updatedChatsData = await Promise.all(
       chatsData.map(async (chat) => {
+        // 1) If it's not a group chat, fetch the other participant's username
         if (!chat.isGroup) {
-          // Fetch the members of the chat
           const { data: membersData, error: membersError } = await supabase
             .from('chat_members')
             .select('userId')
@@ -47,7 +48,7 @@ export async function GET(req: Request) {
 
           if (otherMember) {
             // Fetch the username of the other participant
-            const { data: userData, error: userError } = await supabase
+            const { data: otherUserData, error: userError } = await supabase
               .from('users')
               .select('username')
               .eq('id', otherMember.userId)
@@ -59,16 +60,26 @@ export async function GET(req: Request) {
             }
 
             // Update the chat name to the username of the other participant
-            chat.name = userData.username;
+            chat.name = otherUserData.username;
           }
         }
 
-        // Extract the last message as a single value
+        // 2) Extract the last message as a single object
         if (chat.lastMessage && chat.lastMessage.length > 0) {
           chat.lastMessage = chat.lastMessage[0];
         } else {
           chat.lastMessage = null;
         }
+
+        // 3) Check if joinedAt is null => it's an invitation
+        //    The row in chat_members for this user can be found by userId
+        const membershipRow = chat.chat_members.find((m) => m.userId === userData.id);
+        if (membershipRow && !membershipRow.joinedAt) {
+          chat.isInvitation = true; // Mark as an invitation
+        } else {
+          chat.isInvitation = false;
+        }
+
         return chat;
       })
     );

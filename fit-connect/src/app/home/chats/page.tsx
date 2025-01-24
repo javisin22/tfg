@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Loading from '../../../components/Loading';
 import { useChat } from '../../../contexts/ChatContext';
 import CreateGroupPopup from '../../../components/CreateGroupPopup';
+import InviteToGroupPopup from '../../../components/InviteToGroupPopUp';
 import { createClient } from '@/utils/supabase/client';
 
 export default function ChatsScreen() {
@@ -14,9 +15,11 @@ export default function ChatsScreen() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [isInvitingUser, setIsInvitingUser] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState({});
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, chatId: null });
 
+  // Fetch chats, messages and user info on component mount
   useEffect(() => {
     // Fetch chats and messages for the user logged in
     async function fetchChats() {
@@ -56,6 +59,7 @@ export default function ChatsScreen() {
   useEffect(() => {
     if (!activeChat) return;
 
+    // Fetch messages for the active chat
     async function fetchMessages() {
       try {
         const response = await fetch(`/api/user/chats/getMessages/${activeChat.id}`);
@@ -106,7 +110,7 @@ export default function ChatsScreen() {
     };
   }, [activeChat]);
 
-  // Set up real-time listener for all chats
+  // Set up real-time listener for all chats to update the last message and mark chats as having unread messages
   useEffect(() => {
     const supabase = createClient();
     const subscription = supabase
@@ -129,6 +133,7 @@ export default function ChatsScreen() {
     };
   }, [activeChat]);
 
+  // Send a message to the active chat
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
@@ -155,6 +160,7 @@ export default function ChatsScreen() {
     }
   };
 
+  // Create a new group chat
   const handleCreateGroup = async (name: string, members: string[]) => {
     console.log('Creating group chat...');
     try {
@@ -180,6 +186,7 @@ export default function ChatsScreen() {
     }
   };
 
+  // Leave a group chat
   const handleLeaveGroup = async () => {
     if (!activeChat || !activeChat.isGroup) return;
 
@@ -202,11 +209,34 @@ export default function ChatsScreen() {
     }
   };
 
+  // Invite a user to a group chat
+  const handleInviteUser = async (chatId: string, invitedUserId: string) => {
+    try {
+      const res = await fetch('/api/user/chats/inviteGroup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId, invitedUserId }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error(data.error);
+      } else {
+        console.log('Invitation sent:', data);
+      }
+    } catch (error) {
+      console.error('Error inviting user:', error);
+    }
+    setIsInvitingUser(false);
+  };
+
+  // Handle right-click on chat item to show context menu
   const handleContextMenu = (event, chatId) => {
     event.preventDefault();
     setContextMenu({ visible: true, x: event.clientX, y: event.clientY, chatId });
   };
 
+  // Mark chat as read/unread
   const handleToggleReadStatus = () => {
     if (contextMenu.chatId) {
       setUnreadMessages((prev) => ({
@@ -240,7 +270,6 @@ export default function ChatsScreen() {
               className={`p-4 hover:bg-gray-100 cursor-pointer ${activeChat?.id === chat.id ? 'bg-gray-300' : ''}`}
               onClick={() => {
                 setActiveChat(chat);
-                // Mark messages as read when the user enters the chat
                 setUnreadMessages((prev) => ({ ...prev, [chat.id]: false }));
               }}
               onContextMenu={(e) => handleContextMenu(e, chat.id)}
@@ -252,7 +281,10 @@ export default function ChatsScreen() {
                   <User className="h-10 w-10 rounded-full mr-2 text-black" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate text-black">{chat.name}</p>
+                  {/* If this is an invitation, highlight differently */}
+                  <p className={`text-sm font-medium truncate text-black ${chat.isInvitation ? 'text-red-600 font-bold' : ''}`}>
+                    {chat.isInvitation ? `Invitation: ${chat.name}` : chat.name}
+                  </p>
                   <p className="text-sm text-gray-600 truncate">
                     {chat.lastMessage ? chat.lastMessage.content : 'No messages yet'}
                   </p>
@@ -275,48 +307,115 @@ export default function ChatsScreen() {
         <div className="flex justify-between p-4 border-b">
           <h2 className="text-lg font-semibold text-black">{activeChat?.name}</h2>
           {activeChat?.isGroup && (
-            <button onClick={handleLeaveGroup} className="bg-red-500 hover:bg-red-700 text-white px-2 py-1 rounded-md">
-              Leave Group
-            </button>
+            <div className="space-x-2">
+              <button
+                onClick={() => setIsInvitingUser(true)} // ADDED
+                className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-md"
+              >
+                Invite To Group
+              </button>
+              <button onClick={handleLeaveGroup} className="bg-red-500 hover:bg-red-700 text-white px-2 py-1 rounded-md">
+                Leave Group
+              </button>
+            </div>
           )}
         </div>
 
-        {/* Chat Messages */}
-        <div className="flex-1 p-4 overflow-y-auto">
-          {messages.map((message) => (
-            <div key={message.id} className={`mb-4 ${message.senderId === userId ? 'text-right' : ''}`}>
-              {activeChat?.isGroup && message.senderId !== userId && (
-                <p className="text-xs text-gray-500">{message.sender.username}</p>
-              )}
-              <div
-                className={`inline-block p-2 rounded-lg ${message.senderId === userId ? 'bg-gray-100 text-primary-foreground' : 'bg-gray-300'}`}
+        {/* If this is an invitation, show Accept/Reject */}
+        {activeChat?.isInvitation ? (
+          <div className="flex-1 p-4 flex flex-col items-center justify-center">
+            <p className="text-xl text-red-600 mb-4">You have an invitation to join "{activeChat.name}"</p>
+            <div className="space-x-4">
+              <button
+                onClick={async () => {
+                  // Call an accept endpoint
+                  const res = await fetch(`/api/user/chats/acceptInvitation`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chatId: activeChat.id }),
+                  });
+                  if (res.ok) {
+                    // Replace the invitation with the actual chat
+                    const data = await res.json();
+                    // e.g. data.chat is the real group chat
+                    setChats((prev) => prev.map((c) => (c.id === activeChat.id ? data.chat : c)));
+                    setActiveChat(data.chat);
+                  }
+                }}
+                className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-md"
               >
-                <p className="text-sm text-gray-700">{message.content}</p>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">{new Date(message.timeStamp).toLocaleString()}</p>
+                Accept
+              </button>
+              <button
+                onClick={async () => {
+                  // Call a reject endpoint
+                  const res = await fetch(`/api/user/chats/rejectInvitation`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chatId: activeChat.id }),
+                  });
+                  if (res.ok) {
+                    // Remove invitation from the list
+                    setChats((prev) => prev.filter((c) => c.id !== activeChat.id));
+                    // Optionally set another chat as active
+                    setActiveChat(chats[1] || null);
+                  }
+                }}
+                className="bg-gray-400 hover:bg-gray-500 text-white px-3 py-2 rounded-md"
+              >
+                Reject
+              </button>
             </div>
-          ))}
-        </div>
-
-        {/* Chat Input */}
-        <div className="p-4 border-t">
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              placeholder="Type a message..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              className="flex-1 p-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
-            <button onClick={handleSendMessage} className="p-2 rounded-full bg-primary text-black hover:bg-primary-dark">
-              <SendHorizonal className="h-4 w-4" />
-            </button>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Chat Messages */}
+            <div className="flex-1 p-4 overflow-y-auto">
+              {messages.map((message) => (
+                <div key={message.id} className={`mb-4 ${message.senderId === userId ? 'text-right' : ''}`}>
+                  {activeChat?.isGroup && message.senderId !== userId && (
+                    <p className="text-xs text-gray-500">{message.sender?.username}</p>
+                  )}
+                  <div
+                    className={`inline-block p-2 rounded-lg ${
+                      message.senderId === userId ? 'bg-gray-100 text-primary-foreground' : 'bg-gray-300'
+                    }`}
+                  >
+                    <p className="text-sm text-gray-700">{message.content}</p>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{new Date(message.timeStamp).toLocaleString()}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Chat Input */}
+            <div className="p-4 border-t">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  placeholder="Type a message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                  className="flex-1 p-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <button onClick={handleSendMessage} className="p-2 rounded-full bg-primary text-black hover:bg-primary-dark">
+                  <SendHorizonal className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <CreateGroupPopup isOpen={isCreatingGroup} onClose={() => setIsCreatingGroup(false)} onCreateGroup={handleCreateGroup} />
+
+      <InviteToGroupPopup
+        isOpen={isInvitingUser}
+        onClose={() => setIsInvitingUser(false)}
+        onInvite={handleInviteUser}
+        chatId={activeChat?.id || ''}
+      />
 
       {contextMenu.visible && (
         <div className="absolute bg-white border rounded shadow-md" style={{ top: contextMenu.y, left: contextMenu.x }}>
