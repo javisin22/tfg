@@ -47,8 +47,7 @@ export async function POST(req: Request) {
       .select();
 
     if (insertError) {
-      // If the row already exists, you may get a unique constraint error
-      // You could handle that with a special message
+      // If the row already exists, there may be a unique constraint error
       return NextResponse.json({ error: insertError.message }, { status: 400 });
     }
 
