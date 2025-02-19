@@ -15,7 +15,6 @@ export default function SettingsScreen() {
 
   const [formData, setFormData] = useState({
     username: '',
-    // email: '',
     profilePicture: '',
     biography: '',
     weight: '',
@@ -23,6 +22,9 @@ export default function SettingsScreen() {
     currentPassword: '',
     newPassword: '',
   });
+
+  const [isWeightInKg, setIsWeightInKg] = useState(true);
+  const [isHeightInCm, setIsHeightInCm] = useState(true);
 
   const supabase = createClient();
 
@@ -33,9 +35,7 @@ export default function SettingsScreen() {
       .then((res) => res.json())
       .then((data) => {
         if (data.user) {
-          // const { username, email, profilePicture, biography } = data.user;
           const { username, profilePicture, biography, weight, height } = data.user;
-          // setFormData({ ...formData, username, email, profilePicture, biography });
           setFormData({ ...formData, username, profilePicture, biography, weight, height });
           setImagePreview(profilePicture);
         }
@@ -162,6 +162,57 @@ export default function SettingsScreen() {
     }
   };
 
+  const kgToLb = (kg: number) => {
+    return (kg * 2.20462).toFixed(2);
+  };
+
+  const lbToKg = (lb: number) => {
+    return (lb / 2.20462).toFixed(2);
+  };
+
+  // Converts centimeters to a string in the format "Xft Yin" with inches rounded to one decimal.
+  const cmToFeetInches = (cm: number) => {
+    const totalInches = cm * 0.393701;
+    const feet = Math.floor(totalInches / 12);
+    const inches = totalInches - feet * 12; // preserves the decimal part
+    return `${feet}ft ${inches.toFixed(1)}in`; // example: "5ft 7.3in"
+  };
+
+  // Converts feet and inches (as numbers) back to centimeters.
+  const feetInchesToCm = (feet: number, inches: number) => {
+    const totalInches = feet * 12 + inches;
+    return (totalInches / 0.393701).toFixed(2); // returns a string with 2 decimals
+  };
+
+  // Toggles between weight units (kg <-> lb)
+  const toggleWeightUnit = () => {
+    setFormData({
+      ...formData,
+      weight: isWeightInKg
+        ? kgToLb(Number(formData.weight)).toString() // convert kg to lb
+        : lbToKg(Number(formData.weight)).toString(), // convert lb to kg
+    });
+    setIsWeightInKg(!isWeightInKg);
+  };
+
+  // Toggles between height units (cm <-> feet and inches)
+  const toggleHeightUnit = () => {
+    setIsHeightInCm(!isHeightInCm);
+    if (isHeightInCm) {
+      // Convert cm to feet and inches
+      const heightInCm = Number(formData.height);
+      const heightInFeetInches = cmToFeetInches(heightInCm);
+      setFormData({ ...formData, height: heightInFeetInches });
+    } else {
+      // Convert feet and inches back to cm
+      const [feetStr, inchesStr] = formData.height.split('ft');
+      const feet = Number(feetStr);
+      const inches = Number(inchesStr.replace('in', ''));
+      const heightInCm = feetInchesToCm(feet, inches);
+      setFormData({ ...formData, height: heightInCm });
+    }
+  };
+
   return (
     <div className="h-[calc(100vh-120px)] overflow-y-auto">
       <div className="space-y-6 p-6">
@@ -225,20 +276,6 @@ export default function SettingsScreen() {
               />
             </div>
 
-            {/* <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-black">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Current email"
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
-              />
-            </div> */}
-
             <div className="space-y-2">
               <label htmlFor="biography" className="block text-sm font-medium text-black">
                 Biography
@@ -252,31 +289,45 @@ export default function SettingsScreen() {
               />
             </div>
 
-            <div className='flex justify-start gap-8 w-40'>
+            <div className="flex justify-start gap-8 w-40">
               <div className="space-y-2">
                 <label htmlFor="weight" className="block text-sm font-medium text-black">
-                  Weight
+                  Weight ({isWeightInKg ? 'kg' : 'lb'})
                 </label>
                 <input
                   id="weight"
                   type="number"
                   value={formData.weight}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
+                  className="w-24 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
                 />
+                <button
+                  type="button"
+                  onClick={toggleWeightUnit}
+                  className="text-sm rounded-md p-1 bg-blue-100 hover:bg-blue-300 text-black"
+                >
+                  Convert to {isWeightInKg ? 'lb' : 'kg'}
+                </button>
               </div>
 
               <div className="space-y-2">
                 <label htmlFor="height" className="block text-sm font-medium text-black">
-                  Height
+                  Height ({isHeightInCm ? 'cm' : 'feet and inches'})
                 </label>
                 <input
                   id="height"
-                  type="number"
+                  type="text"
                   value={formData.height}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
+                  className="w-24 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
                 />
+                <button
+                  type="button"
+                  onClick={toggleHeightUnit}
+                  className="text-sm rounded-md p-1 bg-blue-100 hover:bg-blue-300 text-black"
+                >
+                  Convert to {isHeightInCm ? 'feet and inches' : 'cm'}
+                </button>
               </div>
             </div>
           </div>

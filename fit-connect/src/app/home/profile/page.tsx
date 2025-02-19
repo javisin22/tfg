@@ -17,6 +17,9 @@ export default function ProfileScreen() {
   const [followersCount, setFollowersCount] = useState(0);
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showWeightInLbs, setShowWeightInLbs] = useState(false);
+  const [showHeightInFeetInches, setShowHeightInFeetInches] = useState(false);
+  const [likedPosts, setLikedPosts] = useState<string[]>([]);
 
   const supabase = createClient();
 
@@ -125,10 +128,47 @@ export default function ProfileScreen() {
     return publicUrl.data?.publicUrl;
   };
 
+  const kgToLb = (kg: number) => {
+    return (kg * 2.20462).toFixed(2);
+  };
+
+  const cmToFeetInches = (cm: number) => {
+    const totalInches = cm * 0.393701;
+    const feet = Math.floor(totalInches / 12);
+    const inches = totalInches - feet * 12;
+    return `${feet}ft ${inches.toFixed(1)}in`;
+  };
+
+  const handleLikePost = async (postId: string) => {
+    try {
+      const res = await fetch('/api/posts/like', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ postId }),
+      });
+      const data = await res.json();
+      console.log(data);
+      if (res.ok) {
+        if (data.action === 'liked') {
+          setUserPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes + 1 } : post)));
+          setLikedPosts((prev) => [...prev, postId]);
+        } else if (data.action === 'disliked') {
+          setUserPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes - 1 } : post)));
+          setLikedPosts((prev) => prev.filter((id) => id !== postId));
+        }
+      }
+    } catch (error) {
+      console.error('Error liking/disliking post:', error);
+    }
+  };
+
+
   return (
     <div className="h-[calc(100vh-120px)] overflow-y-auto p-6 space-y-6">
       {/* Profile Section */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <section className="bg-white rounded-lg shadow p-6">
         <div className="flex flex-col items-center space-y-4">
           {userInfo?.profilePicture ? (
             <Image
@@ -143,6 +183,34 @@ export default function ProfileScreen() {
           )}
           <h2 className="text-2xl text-gray-500 font-bold text-primary">{username}</h2>
           <p className="text-sm text-gray-500">{userInfo?.biography}</p>
+          <div className="space-y-1">
+            {userInfo?.weight && (
+              <div className="flex items-center space-x-2">
+                <p className="text-sm text-gray-500">
+                  Weight: {showWeightInLbs ? `${kgToLb(userInfo?.weight as number)} lb` : `${userInfo?.weight} kg`}
+                </p>
+                <button
+                  onClick={() => setShowWeightInLbs(!showWeightInLbs)}
+                  className="text-xs text-blue-500 hover:underline focus:outline-none"
+                >
+                  Show in {showWeightInLbs ? 'kg' : 'lb'}
+                </button>
+              </div>
+            )}
+            {userInfo?.height && (
+              <div className="flex items-center space-x-2">
+                <p className="text-sm text-gray-500">
+                  Height: {showHeightInFeetInches ? `${cmToFeetInches(userInfo?.height as number)}` : `${userInfo?.height} cm`}
+                </p>
+                <button
+                  onClick={() => setShowHeightInFeetInches(!showHeightInFeetInches)}
+                  className="text-xs text-blue-500 hover:underline focus:outline-none"
+                >
+                  Show in {showHeightInFeetInches ? 'cm' : 'ft/in'}
+                </button>
+              </div>
+            )}
+          </div>
           <div className="flex space-x-6">
             <div className="text-center">
               <p className="text-xl font-semibold text-primary text-gray-400">{userPosts.length}</p>
@@ -158,7 +226,7 @@ export default function ProfileScreen() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Posts Section */}
       <h3 className="text-xl font-semibold text-primary mb-4">My Posts</h3>
@@ -195,13 +263,19 @@ export default function ProfileScreen() {
           <Image src={post.media} alt="Post" className="rounded-md mb-4" width={400} height={300} />
           <p className="text-sm text-gray-700">{post.description}</p>
           <div className="flex space-x-4">
-            <button className="flex items-center text-sm text-gray-500 hover:text-gray-700">
-              <Heart className="h-4 w-4 mr-1" />
-              {post.likes} {post.likes == 1 ? 'Like' : 'Likes'}
+            <button
+              className="flex items-center text-sm text-gray-500 hover:text-gray-700"
+              onClick={() => handleLikePost(post.id)}
+            >
+              <Heart
+                className={`mr-1 h-4 w-4 inline-block ${likedPosts.includes(post.id) ? 'text-red-600' : 'text-gray-500'}`}
+                fill={likedPosts.includes(post.id) ? 'red' : 'none'}
+              />
+              {post.likes} {post.likes === 1 ? 'Like' : 'Likes'}
             </button>
             <button className="flex items-center text-sm text-gray-500 hover:text-gray-700">
               <MessageSquareMore className="h-4 w-4 mr-1" />
-              {post.comments.length} {post.comments.length == 1 ? 'Comment' : 'Comments'}
+              {post.comments.length} {post.comments.length === 1 ? 'Comment' : 'Comments'}
             </button>
           </div>
           {/* Post Comments */}

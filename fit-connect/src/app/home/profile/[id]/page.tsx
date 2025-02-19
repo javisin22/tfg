@@ -15,6 +15,7 @@ export default function UserProfile() {
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
+  const [likedPosts, setLikedPosts] = useState<string[]>([]);
 
   useEffect(() => {
     if (!id) return; // Ensure userId is available
@@ -50,6 +51,9 @@ export default function UserProfile() {
         const res = await fetch(`/api/user/${id}/posts`);
         const { posts } = await res.json();
         console.log('User Posts:', posts);
+        // Initialize likedPosts state based on the flag in each post
+        const likedPosts = posts.filter((post: any) => post.likedByUser).map((post: any) => post.id);
+        setLikedPosts(likedPosts);
         setUserPosts(posts);
       } catch (error) {
         console.error('Error fetching user posts:', error);
@@ -74,6 +78,32 @@ export default function UserProfile() {
       console.error('Error toggling follow status:', error);
     }
   };
+
+  const handleLikePost = async (postId: string) => {
+    try {
+      const res = await fetch('/api/posts/like', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ postId }),
+      });
+      const data = await res.json();
+      console.log(data);
+      if (res.ok) {
+        if (data.action === 'liked') {
+          setUserPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes + 1 } : post)));
+          setLikedPosts((prev) => [...prev, postId]);
+        } else if (data.action === 'disliked') {
+          setUserPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes - 1 } : post)));
+          setLikedPosts((prev) => prev.filter((id) => id !== postId));
+        }
+      }
+    } catch (error) {
+      console.error('Error liking/disliking post:', error);
+    }
+  };
+
 
   if (!userInfo) {
     return <Loading />;
@@ -110,7 +140,6 @@ export default function UserProfile() {
               <p className="text-xl font-semibold text-primary text-gray-400">{userPosts.length}</p>
               <p className="text-sm text-gray-500">{userPosts.length === 1 ? 'Post' : 'Posts'}</p>
             </div>
-            {/* Placeholder follower/following counts */}
             <div className="text-center">
               <p className="text-xl font-semibold text-primary text-gray-400">{followersCount}</p>
               <p className="text-sm text-gray-500">Followers</p>
@@ -135,7 +164,7 @@ export default function UserProfile() {
                 alt="Profile Picture"
                 width={40}
                 height={40}
-                className="h-10 w-10 rounded-full text-gray-700 object-cover"
+                className="h-10 w-10 rounded-full object-cover"
               />
             ) : (
               <User className="h-10 w-10 rounded-full text-gray-700" />
@@ -148,13 +177,19 @@ export default function UserProfile() {
           <Image src={post.media} alt="Post" className="rounded-md mb-4" width={400} height={300} />
           <p className="text-sm text-gray-700">{post.description}</p>
           <div className="flex space-x-4">
-            <button className="flex items-center text-sm text-gray-500 hover:text-gray-700">
-              <Heart className="h-4 w-4 mr-1" />
-              {post.likes} {post.likes == 1 ? 'Like' : 'Likes'}
+            <button
+              className="flex items-center text-sm text-gray-500 hover:text-gray-700"
+              onClick={() => handleLikePost(post.id)}
+            >
+              <Heart
+                className={`mr-1 h-4 w-4 inline-block ${likedPosts.includes(post.id) ? 'text-red-600' : 'text-gray-500'}`}
+                fill={likedPosts.includes(post.id) ? 'red' : 'none'}
+              />
+              {post.likes} {post.likes === 1 ? 'Like' : 'Likes'}
             </button>
             <button className="flex items-center text-sm text-gray-500 hover:text-gray-700">
-              <MessageSquareMore className="h-4 w-4 mr-1" />
-              {post.comments.length} {post.comments.length == 1 ? 'Comment' : 'Comments'}
+              <MessageSquareMore className="mr-1 h-4 w-4 inline-block" />
+              {post.comments.length} {post.comments.length === 1 ? 'Comment' : 'Comments'}
             </button>
           </div>
           {/* Post Comments */}
@@ -166,8 +201,8 @@ export default function UserProfile() {
                   <Image
                     src={comment.users.profilePicture}
                     alt={`${comment.users.username}'s profile picture`}
-                    width="32"
-                    height="32"
+                    width={32}
+                    height={32}
                     className="h-8 w-8 rounded-full object-cover"
                   />
                   <div>

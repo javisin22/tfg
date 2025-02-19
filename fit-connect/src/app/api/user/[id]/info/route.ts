@@ -21,12 +21,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       .eq('id', id)
       .single();
 
-    console.log('User Info:', userInfo);
-
     if (userError) {
       return NextResponse.json({ error: userError.message }, { status: 404 });
     }
-
+   
     // Check if the current user is following the profile user
     const { data: followData, error: followError } = await supabase
       .from('user_followers')

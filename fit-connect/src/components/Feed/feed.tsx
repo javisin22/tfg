@@ -9,7 +9,7 @@ import Loading from '../Loading';
 import { Post, Comment } from '../../types';
 
 export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
-  const [username, setUsername] = useState('');
+  const [, setUsername] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
   const [newComment, setNewComment] = useState<string>('');
   const [loading, setLoading] = useState(true);
