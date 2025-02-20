@@ -11,6 +11,7 @@ export default function CreateWorkoutPage() {
   const [workout, setWorkout] = useState({ name: '', description: '' });
   const [loading, setLoading] = useState(false);
   const [newExercises, setNewExercises] = useState([]);
+  const [isWeightInKg, setIsWeightInKg] = useState(true);
 
   const handleSave = async () => {
     setLoading(true);
@@ -56,7 +57,7 @@ export default function CreateWorkoutPage() {
         exercises: { name: '', muscularGroup: '' },
         sets: 0,
         reps: 0,
-        lastWeightUsed: 0,
+        lastWeightUsed: 0, // Stored in kg
         duration: 0,
       },
     ]);
@@ -75,6 +76,10 @@ export default function CreateWorkoutPage() {
   const handleRemoveNewExercise = (index) => {
     const updatedNewExercises = newExercises.filter((_, i) => i !== index);
     setNewExercises(updatedNewExercises);
+  };
+
+  const toggleWeightUnit = () => {
+    setIsWeightInKg(!isWeightInKg);
   };
 
   if (loading) {
@@ -103,110 +108,137 @@ export default function CreateWorkoutPage() {
       </div>
 
       {/* Render the list of exercises for the workout */}
-      <table className="min-w-full divide-y divide-gray-200 mt-2">
-        <thead className="bg-gray-50">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
-            ></th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
-            >
-              Exercise
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
-            >
-              Muscular Group
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
-            >
-              Sets
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
-            >
-              Reps
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
-            >
-              Last Weight Used (lb)
-            </th>
-          </tr>
-        </thead>
-
-        <tbody className="bg-white divide-y divide-gray-200">
-          {newExercises.map((exercise, index) => (
-            <tr key={index}>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <button
-                  onClick={() => handleRemoveNewExercise(index)}
-                  className="text-gray-600 hover:text-gray-900 focus:outline-none"
-                >
-                  <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
-                    <Minus className="h-4 w-4" />
-                  </div>
-                </button>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                <input
-                  type="text"
-                  value={exercise.exercises.name}
-                  onChange={(e) => handleNewExerciseChange(index, 'name', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                <input
-                  type="text"
-                  value={exercise.exercises.muscularGroup}
-                  onChange={(e) => handleNewExerciseChange(index, 'muscularGroup', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                <input
-                  type="number"
-                  value={exercise.sets}
-                  onChange={(e) => handleNewExerciseChange(index, 'sets', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                <input
-                  type="number"
-                  value={exercise.reps}
-                  onChange={(e) => handleNewExerciseChange(index, 'reps', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-black">
-                <input
-                  type="number"
-                  value={exercise.lastWeightUsed}
-                  onChange={(e) => handleNewExerciseChange(index, 'lastWeightUsed', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </td>
+      <div className="overflow-x-auto overflow-y-hidden">
+        <table className="min-w-full divide-y divide-gray-300 my-2">
+          <thead className="bg-gray-50">
+            <tr>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+              ></th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+              >
+                Exercise
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+              >
+                Muscular Group
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+              >
+                Sets
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+              >
+                Reps
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+              >
+                Last Weight Used ({isWeightInKg ? 'kg' : 'lb'})
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
+              >
+                Duration (sec)
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
 
-      <div className="flex justify-center mt-4">
+          <tbody className="bg-white divide-y divide-gray-300">
+            {newExercises.map((exercise, index) => (
+              <tr key={index}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <button
+                    onClick={() => handleRemoveNewExercise(index)}
+                    className="text-gray-600 hover:text-gray-900 focus:outline-none"
+                  >
+                    <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
+                      <Minus className="h-4 w-4" />
+                    </div>
+                  </button>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  <input
+                    type="text"
+                    value={exercise.exercises.name}
+                    onChange={(e) => handleNewExerciseChange(index, 'name', e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  <input
+                    type="text"
+                    value={exercise.exercises.muscularGroup}
+                    onChange={(e) => handleNewExerciseChange(index, 'muscularGroup', e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  <input
+                    type="number"
+                    value={exercise.sets}
+                    onChange={(e) => handleNewExerciseChange(index, 'sets', e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  <input
+                    type="number"
+                    value={exercise.reps}
+                    onChange={(e) => handleNewExerciseChange(index, 'reps', e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  <input
+                    type="number"
+                    value={isWeightInKg ? exercise.lastWeightUsed : (exercise.lastWeightUsed * 2.20462).toFixed(2)}
+                    onChange={(e) => {
+                      const value = Number(e.target.value);
+                      // When in lb mode, convert value back to kg before storing.
+                      const newValue = isWeightInKg ? value : value / 2.20462;
+                      handleNewExerciseChange(index, 'lastWeightUsed', newValue);
+                    }}
+                    className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-black">
+                  <input
+                    type="number"
+                    value={exercise.duration}
+                    onChange={(e) => handleNewExerciseChange(index, 'duration', e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex justify-center mt-4 gap-4">
         <button
           onClick={handleAddExercise}
           className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           <Plus className="h-4 w-4 mr-1" /> Add Exercise
+        </button>
+        <button
+          onClick={toggleWeightUnit}
+          className="px-4 py-2 bg-gray-200 hover:bg-gray-400 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800"
+        >
+          Show weight in {isWeightInKg ? 'lb' : 'kg'}
         </button>
       </div>
 

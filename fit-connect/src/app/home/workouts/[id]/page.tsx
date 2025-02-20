@@ -15,6 +15,7 @@ export default function FullWorkoutPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedExercises, setEditedExercises] = useState([]);
   const [newExercises, setNewExercises] = useState([]);
+  const [isWeightInKg, setIsWeightInKg] = useState(true);
 
   // Fetch the workout data from the API
   useEffect(() => {
@@ -132,6 +133,12 @@ export default function FullWorkoutPage() {
     setNewExercises(updatedNewExercises);
   };
 
+  const toggleWeightUnit = () => {
+    setIsWeightInKg(!isWeightInKg);
+  };
+
+  const kgToLb = (kg: number) => (kg * 2.20462).toFixed(2);
+
   if (loading) {
     return <Loading />;
   }
@@ -143,7 +150,7 @@ export default function FullWorkoutPage() {
 
       {/* Render the list of exercises for the workout */}
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 mt-2">
+        <table className="min-w-full divide-y divide-gray-300 my-2">
           <thead className="bg-gray-50">
             <tr>
               {isEditing && (
@@ -181,7 +188,7 @@ export default function FullWorkoutPage() {
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-semibold text-black bg-gray-300 uppercase tracking-wider"
               >
-                Last Weight Used (lb)
+                Last Weight Used ({isWeightInKg ? 'kg' : 'lb'})
               </th>
               <th
                 scope="col"
@@ -192,7 +199,7 @@ export default function FullWorkoutPage() {
             </tr>
           </thead>
 
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-gray-300">
             {editedExercises.map((exercise, index) => (
               <tr key={exercise.id}>
                 {isEditing && (
@@ -259,12 +266,18 @@ export default function FullWorkoutPage() {
                   {isEditing ? (
                     <input
                       type="number"
-                      value={exercise.lastWeightUsed ?? ''}
-                      onChange={(e) => handleExerciseChange(index, 'lastWeightUsed', e.target.value)}
+                      value={isWeightInKg ? exercise.lastWeightUsed : kgToLb(exercise.lastWeightUsed)}
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        const newValue = isWeightInKg ? value : value / 2.20462; // Convert to kg before saving
+                        handleExerciseChange(index, 'lastWeightUsed', newValue);
+                      }}
                       className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                  ) : (
+                  ) : isWeightInKg ? (
                     exercise.lastWeightUsed
+                  ) : (
+                    kgToLb(exercise.lastWeightUsed)
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-black">
@@ -330,8 +343,12 @@ export default function FullWorkoutPage() {
                 <td className="px-6 py-4 whitespace-nowrap text-black">
                   <input
                     type="number"
-                    value={exercise.lastWeightUsed}
-                    onChange={(e) => handleNewExerciseChange(index, 'lastWeightUsed', e.target.value)}
+                    value={isWeightInKg ? exercise.lastWeightUsed : (exercise.lastWeightUsed * 2.20462).toFixed(2)}
+                    onChange={(e) => {
+                      const value = Number(e.target.value);
+                      const newValue = isWeightInKg ? value : value / 2.20462; // Convert to kg before saving
+                      handleNewExerciseChange(index, 'lastWeightUsed', newValue);
+                    }}
                     className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </td>
@@ -349,16 +366,22 @@ export default function FullWorkoutPage() {
         </table>
       </div>
 
-      {isEditing && (
-        <div className="flex justify-center mt-4">
+      <div className="flex justify-center mt-4 gap-4">
+        {isEditing && (
           <button
             onClick={handleAddExercise}
             className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             <Plus className="h-4 w-4 mr-1" /> Add Exercise
           </button>
-        </div>
-      )}
+        )}
+        <button
+          onClick={toggleWeightUnit}
+          className="px-4 py-2 bg-gray-200 hover:bg-gray-400 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800"
+        >
+          Show weight in {isWeightInKg ? 'lb' : 'kg'}
+        </button>
+      </div>
 
       <div className="flex justify-center space-x-20 mt-10">
         {isEditing ? (
