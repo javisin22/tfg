@@ -43,7 +43,7 @@ export default function Layout({
     setRole(userRole);
 
     // Extract the path segment to determine the active tab
-    const pathSegment = pathname.split('/')[3] || pathname.split('/')[2] || 'home';
+    const pathSegment = pathname.split('/')[2] === 'admin' ? pathname.split('/')[3] : pathname.split('/')[2] || 'home';
 
     // Check if the pathSegment belongs to `adminMenuItems`
     const isAdminItem = adminMenuItems.some((item) => item.href.includes(`/home/admin/${pathSegment}`));
@@ -79,31 +79,31 @@ export default function Layout({
               </button>
             </div>
             <nav className="space-y-2">
-              {finalMenuItems.map((item) => (
-                <div key={item.label}>
-                  <Link href={item.href}>
-                    <button
-                      className={`w-full text-lg text-left py-2 px-4 rounded-md ${
-                        pathname === item.href ? 'bg-gray-200 bg-opacity-80 text-black' : ''
-                      }`}
-                      onClick={handleMenuItemClick}
-                    >
-                      <div className="relative inline-block w-6 h-6 mr-2">
-                        {/* Main icon */}
-                        <item.icon className="inline-block w-5 h-5 mr-2" />
-                        {/* Shield icon for admin items */}
-                        {role === 'admin' && adminMenuItems.some((adminItem) => adminItem.label === item.label) && (
-                          <ShieldPlus className="absolute w-4 h-4 -top-1 -right-1" />
-                        )}
-                      </div>
-                      {item.label}
-                    </button>
-                  </Link>
+              {finalMenuItems.map((item) => {
+                const isActive = item.href === '/home' ? pathname === item.href : pathname.startsWith(item.href);
 
-                  {/* Add a horizontal separator for the admin options */}
-                  {role === 'admin' && item.label === 'Settings' && <hr className="my-4 border-gray-600" />}
-                </div>
-              ))}
+                return (
+                  <div key={item.label}>
+                    <Link href={item.href}>
+                      <button
+                        className={`w-full text-lg text-left py-2 px-4 rounded-md ${
+                          isActive ? 'bg-gray-200 bg-opacity-80 text-black' : ''
+                        }`}
+                        onClick={handleMenuItemClick}
+                      >
+                        <div className="relative inline-block w-6 h-6 mr-2">
+                          <item.icon className="inline-block w-5 h-5 mr-2" />
+                          {role === 'admin' && adminMenuItems.some((adminItem) => adminItem.label === item.label) && (
+                            <ShieldPlus className="absolute w-4 h-4 -top-1 -right-1" />
+                          )}
+                        </div>
+                        {item.label}
+                      </button>
+                    </Link>
+                    {role === 'admin' && item.label === 'Settings' && <hr className="my-4 border-gray-600" />}
+                  </div>
+                );
+              })}
             </nav>
             <div className="mt-auto md:hidden ml-3">
               <Logout />
