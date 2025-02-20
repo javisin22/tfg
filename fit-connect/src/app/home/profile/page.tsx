@@ -273,10 +273,10 @@ export default function ProfileScreen() {
               />
               {post.likes} {post.likes === 1 ? 'Like' : 'Likes'}
             </button>
-            <button className="flex items-center text-sm text-gray-500 hover:text-gray-700">
+            <div className="flex items-center text-sm text-gray-500">
               <MessageSquareMore className="h-4 w-4 mr-1" />
               {post.comments.length} {post.comments.length === 1 ? 'Comment' : 'Comments'}
-            </button>
+            </div>
           </div>
           {/* Post Comments */}
           {post.comments && post.comments.length > 0 ? (

@@ -27,12 +27,12 @@ export default function WorkoutsScreen() {
   }
 
   return (
-    <div className="pt-6">
+    <div className="pt-6 min-h-screen overflow-y-autoauto">
       {workouts.map((workout) => (
         <div key={workout.id} className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h1 className="text-2xl font-bold text-black mb-2">{workout.name}</h1>
           <p className="text-gray-600 mb-4">{workout.description}</p>
-          <hr className=" h-[2px] my-2 bg-gray-500 border-0 rounded-sm" />
+          <hr className="h-[2px] my-2 bg-gray-500 border-0 rounded-sm" />
           <ul>
             {workout.workout_exercises.slice(0, 4).map((workout_exercise) => (
               <li key={workout_exercise.id} className="flex justify-between text-gray-800 py-1">
@@ -59,7 +59,7 @@ export default function WorkoutsScreen() {
       ))}
 
       {/* Create New Workout Button */}
-      <div className="flex justify-center mt-10">
+      <div className="flex justify-center mt-10 mb-4">
         <Link href="/home/workouts/new">
           <button className="flex items-center px-4 py-2 bg-black hover:bg-gray-900 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2">
             <Plus size={24} />

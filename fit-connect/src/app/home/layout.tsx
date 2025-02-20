@@ -118,7 +118,7 @@ export default function Layout({
           )}
 
           {/* Main content */}
-          <div className="flex-1 overflow-hidden p-4 bg-slate-700 text-white">
+          <div className="flex-1 overflow-y-auto md:overflow-hidden p-4 bg-slate-700 text-white">
             <div className="max-w-5xl mx-auto">
               {/* Top bar */}
               <div className="flex justify-between items-center mb-4">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { User, Users, SendHorizonal, Plus } from 'lucide-react';
+import { User, Users, SendHorizonal, Plus, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Loading from '../../../components/Loading';
 import { useChat } from '../../../contexts/ChatContext';
@@ -17,18 +17,16 @@ export default function ChatsScreen() {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [isInvitingUser, setIsInvitingUser] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState({});
+  const [loading, setLoading] = useState(true);
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, chatId: null });
 
-  // Fetch chats, messages and user info on component mount
+  // Fetch chats and user info on mount
   useEffect(() => {
-    // Fetch chats and messages for the user logged in
     async function fetchChats() {
       try {
         const response = await fetch('/api/user/chats/getChats');
         const data = await response.json();
-
         console.log('data:', data);
-
         if (response.ok) {
           setChats(data.chats);
           if (data.chats.length > 0) setActiveChat(data.chats[0]);
@@ -55,33 +53,27 @@ export default function ChatsScreen() {
     getUserInfo();
   }, []);
 
-  // Fetch messages for the selected chat and set up real-time listener
+  // Fetch messages for active chat and subscribe for real-time updates
   useEffect(() => {
     if (!activeChat) return;
-
-    // Fetch messages for the active chat
     async function fetchMessages() {
       try {
         const response = await fetch(`/api/user/chats/getMessages/${activeChat.id}`);
         const data = await response.json();
-
         console.log('Messages:', data);
-
         if (response.ok) {
           setMessages(data.messages);
-          // Mark messages as read when the user enters the chat
           setUnreadMessages((prev) => ({ ...prev, [activeChat.id]: false }));
         } else {
           console.error(data.error);
         }
       } catch (error) {
         console.error('Error fetching messages:', error);
+      } finally {
+        setLoading(false);
       }
     }
-
     fetchMessages();
-
-    // Set up real-time listener for new messages
     const supabase = createClient();
     const subscription = supabase
       .channel(`chat:${activeChat.id}`)
@@ -91,13 +83,11 @@ export default function ChatsScreen() {
         (payload) => {
           console.log('New message received:', payload.new);
           setMessages((prevMessages) => {
-            // Check if the message is already in the state to avoid duplicates
             if (!prevMessages.some((msg) => msg.id === payload.new.id)) {
               return [...prevMessages, payload.new];
             }
             return prevMessages;
           });
-          // Mark the chat as having unread messages if the user is not currently viewing it
           if (activeChat.id !== payload.new.chatId) {
             setUnreadMessages((prev) => ({ ...prev, [payload.new.chatId]: true }));
           }
@@ -110,7 +100,7 @@ export default function ChatsScreen() {
     };
   }, [activeChat]);
 
-  // Set up real-time listener for all chats to update the last message and mark chats as having unread messages
+  // Subscribe for updates on all chats
   useEffect(() => {
     const supabase = createClient();
     const subscription = supabase
@@ -120,8 +110,6 @@ export default function ChatsScreen() {
         setChats((prevChats) =>
           prevChats.map((chat) => (chat.id === payload.new.chatId ? { ...chat, lastMessage: payload.new } : chat))
         );
-
-        // Mark the chat as having unread messages if the user is not currently viewing it
         if (activeChat?.id !== payload.new.chatId) {
           setUnreadMessages((prev) => ({ ...prev, [payload.new.chatId]: true }));
         }
@@ -133,25 +121,18 @@ export default function ChatsScreen() {
     };
   }, [activeChat]);
 
-  // Send a message to the active chat
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
-
     console.log('Sending message:', newMessage);
-
     try {
       const response = await fetch(`/api/user/chats/sendMessage/${activeChat.id}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: newMessage }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
-        setNewMessage(''); // Clear the input field
+        setNewMessage('');
       } else {
         console.error(data.error);
       }
@@ -160,20 +141,15 @@ export default function ChatsScreen() {
     }
   };
 
-  // Create a new group chat
-  const handleCreateGroup = async (name: string, members: string[]) => {
+  const handleCreateGroup = async (name, members) => {
     console.log('Creating group chat...');
     try {
       const response = await fetch('/api/user/chats/createGroup', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, members }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         setChats((prevChats) => [...prevChats, data.chat]);
         setIsCreatingGroup(false);
@@ -186,20 +162,15 @@ export default function ChatsScreen() {
     }
   };
 
-  // Leave a group chat
   const handleLeaveGroup = async () => {
     if (!activeChat || !activeChat.isGroup) return;
-
     try {
       const response = await fetch(`/api/user/chats/leaveGroup/${activeChat.id}`, {
         method: 'DELETE',
       });
-
       const data = await response.json();
-
       if (response.ok) {
         setChats((prevChats) => prevChats.filter((chat) => chat.id !== activeChat.id));
-        // If the group chat the user is leaving is the active chat, set the following chat as active (if any)
         chats[0].id === activeChat.id ? setActiveChat(chats[1] || null) : setActiveChat(chats[0] || null);
       } else {
         console.error(data.error);
@@ -209,8 +180,7 @@ export default function ChatsScreen() {
     }
   };
 
-  // Invite a user to a group chat
-  const handleInviteUser = async (chatId: string, invitedUserId: string) => {
+  const handleInviteUser = async (chatId, invitedUserId) => {
     try {
       const res = await fetch('/api/user/chats/inviteGroup', {
         method: 'POST',
@@ -218,7 +188,6 @@ export default function ChatsScreen() {
         body: JSON.stringify({ chatId, invitedUserId }),
       });
       const data = await res.json();
-
       if (!res.ok) {
         console.error(data.error);
       } else {
@@ -230,13 +199,11 @@ export default function ChatsScreen() {
     setIsInvitingUser(false);
   };
 
-  // Handle right-click on chat item to show context menu
   const handleContextMenu = (event, chatId) => {
     event.preventDefault();
     setContextMenu({ visible: true, x: event.clientX, y: event.clientY, chatId });
   };
 
-  // Mark chat as read/unread
   const handleToggleReadStatus = () => {
     if (contextMenu.chatId) {
       setUnreadMessages((prev) => ({
@@ -252,9 +219,9 @@ export default function ChatsScreen() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-120px)]" onClick={() => setContextMenu({ visible: false, x: 0, y: 0, chatId: null })}>
+    <div className="flex flex-col md:flex-row h-[calc(100vh-120px)]">
       {/* Chat List */}
-      <div className="w-1/3 border rounded-lg shadow-md p-4 bg-white">
+      <div className="md:w-1/3 w-full border rounded-lg shadow-md p-4 bg-white max-h-[250px] md:max-h-full overflow-y-clip">
         <button
           onClick={() => setIsCreatingGroup(true)}
           className="w-full mb-5 p-2 bg-black hover:bg-gray-800 text-white rounded-md flex items-center justify-center"
@@ -281,7 +248,6 @@ export default function ChatsScreen() {
                   <User className="h-10 w-10 rounded-full mr-2 text-black" />
                 )}
                 <div className="flex-1 min-w-0">
-                  {/* If this is an invitation, highlight differently */}
                   <p className={`text-sm font-medium truncate text-black ${chat.isInvitation ? 'text-red-600 font-bold' : ''}`}>
                     {chat.isInvitation ? `Invitation: ${chat.name}` : chat.name}
                   </p>
@@ -302,20 +268,20 @@ export default function ChatsScreen() {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col border rounded-lg shadow-md p-4 bg-white">
+      <div className="flex-1 flex flex-col border rounded-lg shadow-md p-4 bg-white mt-4 md:mt-0 md:ml-4 overflow-hidden">
         {/* Chat Header */}
-        <div className="flex justify-between p-4 border-b">
+        <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-lg font-semibold text-black">{activeChat?.name}</h2>
           {activeChat?.isGroup && (
-            <div className="space-x-2">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
               <button
-                onClick={() => setIsInvitingUser(true)} // ADDED
-                className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-md"
+                onClick={() => setIsInvitingUser(true)}
+                className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-2 py-1 rounded-md"
               >
-                Invite To Group
+                Invite
               </button>
-              <button onClick={handleLeaveGroup} className="bg-red-500 hover:bg-red-700 text-white px-2 py-1 rounded-md">
-                Leave Group
+              <button onClick={handleLeaveGroup} className="bg-red-500 hover:bg-red-700 text-white text-sm px-2 py-1 rounded-md">
+                Leave
               </button>
             </div>
           )}
@@ -328,16 +294,13 @@ export default function ChatsScreen() {
             <div className="space-x-4">
               <button
                 onClick={async () => {
-                  // Call an accept endpoint
                   const res = await fetch(`/api/user/chats/acceptInvitation`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ chatId: activeChat.id }),
                   });
                   if (res.ok) {
-                    // Replace the invitation with the actual chat
                     const data = await res.json();
-                    // e.g. data.chat is the real group chat
                     setChats((prev) => prev.map((c) => (c.id === activeChat.id ? data.chat : c)));
                     setActiveChat(data.chat);
                   }
@@ -348,16 +311,13 @@ export default function ChatsScreen() {
               </button>
               <button
                 onClick={async () => {
-                  // Call a reject endpoint
                   const res = await fetch(`/api/user/chats/rejectInvitation`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ chatId: activeChat.id }),
                   });
                   if (res.ok) {
-                    // Remove invitation from the list
                     setChats((prev) => prev.filter((c) => c.id !== activeChat.id));
-                    // Optionally set another chat as active
                     setActiveChat(chats[1] || null);
                   }
                 }}
@@ -371,21 +331,31 @@ export default function ChatsScreen() {
           <>
             {/* Chat Messages */}
             <div className="flex-1 p-4 overflow-y-auto">
-              {messages.map((message) => (
-                <div key={message.id} className={`mb-4 ${message.senderId === userId ? 'text-right' : ''}`}>
-                  {activeChat?.isGroup && message.senderId !== userId && (
-                    <p className="text-xs text-gray-500">{message.sender?.username}</p>
-                  )}
-                  <div
-                    className={`inline-block p-2 rounded-lg ${
-                      message.senderId === userId ? 'bg-gray-100 text-primary-foreground' : 'bg-gray-300'
-                    }`}
-                  >
-                    <p className="text-sm text-gray-700">{message.content}</p>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">{new Date(message.timeStamp).toLocaleString()}</p>
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
                 </div>
-              ))}
+              ) : messages.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-lg text-gray-500">No messages yet</p>
+                </div>
+              ) : (
+                messages.map((message) => (
+                  <div key={message.id} className={`mb-4 ${message.senderId === userId ? 'text-right' : ''}`}>
+                    {activeChat?.isGroup && message.senderId !== userId && (
+                      <p className="text-xs text-gray-500">{message.sender?.username}</p>
+                    )}
+                    <div
+                      className={`inline-block p-2 rounded-lg ${
+                        message.senderId === userId ? 'bg-gray-100 text-primary-foreground' : 'bg-gray-300'
+                      }`}
+                    >
+                      <p className="text-sm text-gray-700">{message.content}</p>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{new Date(message.timeStamp).toLocaleString()}</p>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Chat Input */}
