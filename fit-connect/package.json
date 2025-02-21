@@ -17,9 +17,10 @@
     "globals": "^15.9.0",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.446.0",
-    "next": "14.2.13",
+    "next": "^14.2.24",
     "react": "^18",
     "react-dom": "^18",
+    "react-hot-toast": "^2.5.2",
     "typescript": "^5",
     "uuid": "^10.0.0"
   },

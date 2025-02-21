@@ -6,11 +6,13 @@ import { Image as ImageIcon, Plus, Calendar, MapPin, Users, CircleUserRound } fr
 import CreateEventPopup from '../../../components/CreateEventPopup';
 import Loading from '../../../components/Loading';
 import { useEvents } from '../../../contexts/EventsContext';
+import toast from 'react-hot-toast';
 
 export default function EventsScreen() {
   // const [events, setEvents] = useState([]);
   const { events, setEvents, handleEventCreated } = useEvents();
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+  const [joinedEventIds, setJoinedEventIds] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchEvents() {
@@ -26,7 +28,48 @@ export default function EventsScreen() {
     fetchEvents();
   }, [setEvents]);
 
-  const handleJoinEvent = async (eventId) => {
+  // Fetch the IDs of events the current user is already a member of
+  useEffect(() => {
+    async function fetchUserMemberships() {
+      try {
+        const res = await fetch('/api/events/membership'); 
+        const data = await res.json();
+        // Assume the endpoint returns { eventIds: string[] }
+        setJoinedEventIds(data.eventIds || []);
+      } catch (error) {
+        console.error('Error fetching event memberships:', error);
+      }
+    }
+    fetchUserMemberships();
+  }, []);
+
+  // const handleJoinEvent = async (eventId) => {
+  //   try {
+  //     const res = await fetch(`/api/events/join/${eventId}`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //     });
+  //     const data = await res.json();
+  //     // 🎃 Change Alerts to Toasts in future (or better display)
+  //     if (res.status === 200) {
+  //       console.log('Joined event successfully:', data);
+  //       alert('You have successfully joined the event.');
+  //     } else if (res.status === 400 && data.error === 'Event is full') {
+  //       alert('The event is full. You cannot join this event.');
+  //     } else if (res.status === 409 && data.error === 'User is already a member of the event') {
+  //       alert('You are already a member of this event.');
+  //     } else {
+  //       console.error('Error joining event:', data.error);
+  //       alert('An error occurred while trying to join the event.');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error joining event:', error);
+  //   }
+  // };
+
+  const handleJoinEvent = async (eventId: string) => {
     try {
       const res = await fetch(`/api/events/join/${eventId}`, {
         method: 'POST',
@@ -35,22 +78,42 @@ export default function EventsScreen() {
         },
       });
       const data = await res.json();
-      // 🎃 Change Alerts to Toasts in future (or better display)
       if (res.status === 200) {
-        console.log('Joined event successfully:', data);
-        alert('You have successfully joined the event.');
+        toast.success('Te has unido al evento exitosamente.');
+        setJoinedEventIds((prev) => [...prev, eventId]);
       } else if (res.status === 400 && data.error === 'Event is full') {
-        alert('The event is full. You cannot join this event.');
+        toast.error('El evento está lleno. No puedes unirte.');
       } else if (res.status === 409 && data.error === 'User is already a member of the event') {
-        alert('You are already a member of this event.');
+        toast.error('Ya eres miembro de este evento.');
       } else {
         console.error('Error joining event:', data.error);
-        alert('An error occurred while trying to join the event.');
+        toast.error('Ocurrió un error al unirte al evento.');
       }
     } catch (error) {
       console.error('Error joining event:', error);
+      toast.error('Ocurrió un error al unirte al evento.');
     }
   };
+
+  const handleLeaveEvent = async (eventId: string) => {
+    try {
+      const res = await fetch(`/api/events/leave/${eventId}`, { 
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Has salido del evento.');
+        setJoinedEventIds((prev) => prev.filter((id) => id !== eventId));
+      } else {
+        console.error('Error leaving event:', data.error);
+        toast.error('Ocurrió un error al salir del evento.');
+      }
+    } catch (error) {
+      console.error('Error leaving event:', error);
+      toast.error('Ocurrió un error al salir del evento.');
+    }
+  };
+
 
   if (events.length === 0) {
     return <Loading />;
@@ -60,7 +123,10 @@ export default function EventsScreen() {
     <div className="h-[calc(100vh-120px)] overflow-y-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6 overflow-y-auto">
         {events.map((event) => (
-          <div key={event.id} className="border rounded-lg shadow-lg p-4">
+          <div
+            key={event.id}
+            className="bg-white rounded-lg shadow-md p-4 transition-transform transform hover:scale-105 hover:shadow-lg"
+          >
             {event.media ? (
               <Image
                 src={event.media}
@@ -70,34 +136,48 @@ export default function EventsScreen() {
                 className="w-full h-52 object-contain rounded-lg mb-4"
               />
             ) : (
-              <div className="w-full h-52 flex items-center justify-center bg-gray-200 bg-opacity-50 rounded-lg mb-4">
-                <ImageIcon size={48} className="text-white" />
-                <span className="ml-2 text-white">No Image Available</span>
+              <div className="w-full h-52 flex flex-col items-center justify-center bg-gray-400 bg-opacity-50 rounded-lg mb-4">
+                <ImageIcon size={48} className="text-black" />
+                <span className="mt-2 text-black">No Image Available</span>
               </div>
             )}
-            <h2 className="text-xl font-bold text-primary">{event.name}</h2>
-            <p className="text-gray-400">
-              <Calendar size={16} className="inline-block text-white" /> {event.date}
+            <h2 className="text-xl font-bold text-black mb-1">{event.name}</h2>
+            <p className="text-gray-600 text-sm mb-1">
+              <Calendar size={16} className="inline-block text-black mr-1" />
+              {new Date(event.date).toLocaleDateString()} {new Date(event.date).toLocaleTimeString()}
             </p>
-            <p className="text-gray-400">
-              <MapPin size={16} className="inline-block text-white" /> {event.location}
+            <p className="text-gray-600 text-sm mb-1">
+              <MapPin size={16} className="inline-block text-black mr-1" />
+              {event.location}
             </p>
-            <p className="text-gray-400">
-              <Users size={16} className="inline-block text-white" />{' '}
+            <p className="text-gray-600 text-sm mb-1">
+              <Users size={16} className="inline-block text-black mr-1" />
               {event.maxParticipants ? `Max Participants: ${event.maxParticipants}` : 'No limit'}
             </p>
-            <hr className="my-4 mx-2 border-gray-200" />
-            <p className="mt-2">{event.description}</p>
-            <hr className="my-4 mx-2 border-gray-200" />
+            <hr className="my-3 mx-2 border-gray-600" />
+            <p className="text-gray-700 text-sm mb-3">{event.description}</p>
+            <hr className="my-3 mx-2 border-gray-600" />
             <div className="flex justify-between items-center">
-              <div className="flex items-center">
-                <CircleUserRound size={18} className="text-primary mr-2" />
+              <div className="text-sm text-gray-700 flex items-center">
+                <CircleUserRound size={18} className="text-black mr-1" />
                 Organized by: {event.users.username}
               </div>
-              <button className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4" onClick={() => handleJoinEvent(event.id)}>
-                Join
-              </button>
-            </div>{' '}
+              {joinedEventIds.includes(event.id) ? (
+                <button
+                  onClick={() => handleLeaveEvent(event.id)}
+                  className="bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-3 py-1 rounded-lg"
+                >
+                  Leave
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleJoinEvent(event.id)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-3 py-1 rounded-lg"
+                >
+                  Join
+                </button>
+              )}
+            </div>
           </div>
         ))}
 
@@ -108,9 +188,12 @@ export default function EventsScreen() {
           <Plus size={24} className="inline-block" />
         </button>
 
-        <CreateEventPopup isOpen={isCreatingEvent} onClose={() => setIsCreatingEvent(false)} onEventCreated={handleEventCreated} />
+        <CreateEventPopup
+          isOpen={isCreatingEvent}
+          onClose={() => setIsCreatingEvent(false)}
+          onEventCreated={handleEventCreated}
+        />
       </div>
     </div>
-
   );
 }

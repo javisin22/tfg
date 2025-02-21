@@ -4,16 +4,7 @@ import { useState, useEffect } from 'react';
 import { Search, Check, X, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 
-interface Event {
-  id: string;
-  name: string;
-  description?: string;
-  date?: string; // timestamp
-  location?: string;
-  createdAt?: string; // timestamp
-  media?: string;
-  maxParticipants?: number;
-}
+import { Event } from '../../../../types';
 
 export default function EventsAdminPage() {
   const [events, setEvents] = useState<Event[]>([]);

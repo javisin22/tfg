@@ -11,8 +11,6 @@ export async function GET() {
       .from('events')
       .select('*, users:organizerId (username)');
 
-    // console.log('eventsData:', eventsData);
-
     if (eventsError) {
       console.error('error:', eventsError);
       return NextResponse.json({ error: eventsError.message }, { status: 500 });
