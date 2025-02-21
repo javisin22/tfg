@@ -144,7 +144,7 @@ export default function FullWorkoutPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 h-[calc(100vh-120px)] overflow-y-auto">
       <h1 className="text-3xl font-bold mb-4">{workout.name}</h1>
       <p className="text-lg text-gray-300 mb-16">{workout.description}</p>
 

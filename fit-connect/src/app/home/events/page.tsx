@@ -57,57 +57,60 @@ export default function EventsScreen() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-      {events.map((event) => (
-        <div key={event.id} className="border rounded-lg shadow-lg p-4">
-          {event.media ? (
-            <Image
-              src={event.media}
-              alt={event.name}
-              width={300}
-              height={200}
-              className="w-full h-52 object-contain rounded-lg mb-4"
-            />
-          ) : (
-            <div className="w-full h-52 flex items-center justify-center bg-gray-200 bg-opacity-50 rounded-lg mb-4">
-              <ImageIcon size={48} className="text-white" />
-              <span className="ml-2 text-white">No Image Available</span>
-            </div>
-          )}
-          <h2 className="text-xl font-bold text-primary">{event.name}</h2>
-          <p className="text-gray-400">
-            <Calendar size={16} className="inline-block text-white" /> {event.date}
-          </p>
-          <p className="text-gray-400">
-            <MapPin size={16} className="inline-block text-white" /> {event.location}
-          </p>
-          <p className="text-gray-400">
-            <Users size={16} className="inline-block text-white" />{' '}
-            {event.maxParticipants ? `Max Participants: ${event.maxParticipants}` : 'No limit'}
-          </p>
-          <hr className="my-4 mx-2 border-gray-200" />
-          <p className="mt-2">{event.description}</p>
-          <hr className="my-4 mx-2 border-gray-200" />
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <CircleUserRound size={18} className="text-primary mr-2" />
-              Organized by: {event.users.username}
-            </div>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4" onClick={() => handleJoinEvent(event.id)}>
-              Join
-            </button>
-          </div>{' '}
-        </div>
-      ))}
+    <div className="h-[calc(100vh-120px)] overflow-y-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6 overflow-y-auto">
+        {events.map((event) => (
+          <div key={event.id} className="border rounded-lg shadow-lg p-4">
+            {event.media ? (
+              <Image
+                src={event.media}
+                alt={event.name}
+                width={300}
+                height={200}
+                className="w-full h-52 object-contain rounded-lg mb-4"
+              />
+            ) : (
+              <div className="w-full h-52 flex items-center justify-center bg-gray-200 bg-opacity-50 rounded-lg mb-4">
+                <ImageIcon size={48} className="text-white" />
+                <span className="ml-2 text-white">No Image Available</span>
+              </div>
+            )}
+            <h2 className="text-xl font-bold text-primary">{event.name}</h2>
+            <p className="text-gray-400">
+              <Calendar size={16} className="inline-block text-white" /> {event.date}
+            </p>
+            <p className="text-gray-400">
+              <MapPin size={16} className="inline-block text-white" /> {event.location}
+            </p>
+            <p className="text-gray-400">
+              <Users size={16} className="inline-block text-white" />{' '}
+              {event.maxParticipants ? `Max Participants: ${event.maxParticipants}` : 'No limit'}
+            </p>
+            <hr className="my-4 mx-2 border-gray-200" />
+            <p className="mt-2">{event.description}</p>
+            <hr className="my-4 mx-2 border-gray-200" />
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <CircleUserRound size={18} className="text-primary mr-2" />
+                Organized by: {event.users.username}
+              </div>
+              <button className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4" onClick={() => handleJoinEvent(event.id)}>
+                Join
+              </button>
+            </div>{' '}
+          </div>
+        ))}
 
-      <button
-        className="fixed bottom-6 right-6 rounded-full w-12 h-12 bg-blue-500 text-white shadow-lg"
-        onClick={() => setIsCreatingEvent(true)}
-      >
-        <Plus size={24} className="inline-block" />
-      </button>
+        <button
+          className="fixed bottom-6 right-6 rounded-full w-12 h-12 bg-blue-500 text-white shadow-lg"
+          onClick={() => setIsCreatingEvent(true)}
+        >
+          <Plus size={24} className="inline-block" />
+        </button>
 
-      <CreateEventPopup isOpen={isCreatingEvent} onClose={() => setIsCreatingEvent(false)} onEventCreated={handleEventCreated} />
+        <CreateEventPopup isOpen={isCreatingEvent} onClose={() => setIsCreatingEvent(false)} onEventCreated={handleEventCreated} />
+      </div>
     </div>
+
   );
 }

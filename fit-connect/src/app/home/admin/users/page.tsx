@@ -74,7 +74,7 @@ export default function UsersAdminPage() {
   }
 
   return (
-    <div className="p-4 text-white">
+    <div className="p-4 text-white h-[calc(100vh-120px)] overflow-y-auto">
       <h1 className="text-2xl font-bold mb-4">Manage Users</h1>
 
       {/* Search Bar */}

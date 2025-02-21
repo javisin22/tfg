@@ -87,7 +87,7 @@ export default function CreateWorkoutPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 h-[calc(100vh-120px)] overflow-y-auto">
       <h1 className="text-3xl font-bold mb-4">Create New Workout</h1>
       <div className="mb-4">
         <label className="block text-sm font-medium text-white">Workout Name</label>

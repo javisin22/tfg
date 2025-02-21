@@ -27,7 +27,7 @@ export default function WorkoutsScreen() {
   }
 
   return (
-    <div className="pt-6 min-h-screen overflow-y-autoauto">
+    <div className="pt-6 h-[calc(100vh-120px)] overflow-y-auto">
       {workouts.map((workout) => (
         <div key={workout.id} className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h1 className="text-2xl font-bold text-black mb-2">{workout.name}</h1>

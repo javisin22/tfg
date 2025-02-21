@@ -42,17 +42,21 @@ export default function Layout({
     const userRole = Cookies.get('role') || 'user';
     setRole(userRole);
 
-    // Extract the path segment to determine the active tab
-    const pathSegment = pathname.split('/')[2] === 'admin' ? pathname.split('/')[3] : pathname.split('/')[2] || 'home';
+    // Split the current pathname into segments
+    const segments = pathname.split('/');
 
-    // Check if the pathSegment belongs to `adminMenuItems`
-    const isAdminItem = adminMenuItems.some((item) => item.href.includes(`/home/admin/${pathSegment}`));
-
-    // Set the active tab based on the appropriate segment
-    if (isAdminItem) {
-      setActiveTab(`${pathSegment} (admin)`);
+    // Check if the route is in the admin area
+    if (segments[2] === 'admin') {
+      const pathSegment = segments[3] || 'home';
+      // Only mark as admin if the user is actually an admin.
+      if (userRole === 'admin') {
+        setActiveTab(`${pathSegment} (admin)`);
+      } else {
+        setActiveTab(pathSegment);
+      }
     } else {
-      setActiveTab(pathname.split('/')[2] || 'home');
+      // For non-admin routes, use the second segment (or default to 'home')
+      setActiveTab(segments[2] || 'home');
     }
   }, [pathname]);
 
@@ -118,7 +122,7 @@ export default function Layout({
           )}
 
           {/* Main content */}
-          <div className="flex-1 overflow-y-auto md:overflow-hidden p-4 bg-slate-700 text-white">
+          <div className="flex-1 overflow-hidden p-4 bg-slate-700 text-white">
             <div className="max-w-5xl mx-auto">
               {/* Top bar */}
               <div className="flex justify-between items-center mb-4">
