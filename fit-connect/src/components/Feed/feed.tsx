@@ -11,9 +11,17 @@ import { Post, Comment } from '../../types';
 export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
   const [, setUsername] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
-  const [newComment, setNewComment] = useState<string>('');
+  const [newComment, setNewComment] = useState<Comment>('');
   const [loading, setLoading] = useState(true);
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
+
+  const emptyComment: Comment = {
+    id: '',
+    postId: '',
+    userId: '',
+    content: '',
+    postedAt: '',
+  };
 
   // Fetch posts from the API endpoint
   useEffect(() => {
@@ -56,13 +64,13 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
           post.id === postId
             ? {
                 ...post,
-                comments: [...post.comments, comment],
+                comments: [...(post.comments || []), comment],
               }
             : post
         )
       );
 
-      setNewComment(''); // Clear the input field
+      setNewComment(emptyComment); // Clear the input field
     } catch (error) {
       console.error('Error posting comment:', error);
     }
@@ -85,12 +93,12 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
       if (res.ok) {
         if (data.action === 'liked') {
           // Update the posts state to increment likes
-          setPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes + 1 } : post)));
+          setPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes? + 1 : 1 } : post)));
           // Add postId to likedPosts to prevent multiple likes
           setLikedPosts((prevLikedPosts) => [...prevLikedPosts, postId]);
         } else if (data.action === 'disliked') {
           // Update the posts state to decrement likes
-          setPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes - 1 } : post)));
+          setPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes? - 1 : 0 } : post)));
           // Remove postId from likedPosts
           setLikedPosts((prevLikedPosts) => prevLikedPosts.filter((id) => id !== postId));
         }
@@ -143,7 +151,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
                   </button>
                   <span className="text-gray-600">
                     <MessageSquareMore className="mr-2 h-4 w-4 inline-block" />
-                    {post.comments.length} {post.comments.length == 1 ? 'Comment' : 'Comments'}
+                    {post.comments?.length} {post.comments?.length == 1 ? 'Comment' : 'Comments'}
                   </span>
                 </div>
               </div>

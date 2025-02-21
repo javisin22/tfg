@@ -9,6 +9,8 @@ import CreateGroupPopup from '../../../components/CreateGroupPopup';
 import InviteToGroupPopup from '../../../components/InviteToGroupPopUp';
 import { createClient } from '@/utils/supabase/client';
 
+import { Chat, Message } from '../../../types';
+
 export default function ChatsScreen() {
   const [userId, setUserId] = useState('');
   const { chats, setChats, activeChat, setActiveChat } = useChat();

@@ -152,10 +152,10 @@ export default function ProfileScreen() {
       console.log(data);
       if (res.ok) {
         if (data.action === 'liked') {
-          setUserPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes + 1 } : post)));
+          setUserPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes? + 1 : 1 } : post)));
           setLikedPosts((prev) => [...prev, postId]);
         } else if (data.action === 'disliked') {
-          setUserPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes - 1 } : post)));
+          setUserPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes? - 1 : 0 } : post)));
           setLikedPosts((prev) => prev.filter((id) => id !== postId));
         }
       }
@@ -275,7 +275,7 @@ export default function ProfileScreen() {
             </button>
             <div className="flex items-center text-sm text-gray-500">
               <MessageSquareMore className="h-4 w-4 mr-1" />
-              {post.comments.length} {post.comments.length === 1 ? 'Comment' : 'Comments'}
+              {post.comments?.length} {post.comments?.length === 1 ? 'Comment' : 'Comments'}
             </div>
           </div>
           {/* Post Comments */}

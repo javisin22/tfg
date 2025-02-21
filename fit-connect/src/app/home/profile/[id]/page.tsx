@@ -92,10 +92,10 @@ export default function UserProfile() {
       console.log(data);
       if (res.ok) {
         if (data.action === 'liked') {
-          setUserPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes + 1 } : post)));
+          setUserPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes? + 1 : 1 } : post)));
           setLikedPosts((prev) => [...prev, postId]);
         } else if (data.action === 'disliked') {
-          setUserPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes - 1 } : post)));
+          setUserPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes? - 1 : 0 } : post)));
           setLikedPosts((prev) => prev.filter((id) => id !== postId));
         }
       }
