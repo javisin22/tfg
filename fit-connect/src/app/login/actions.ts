@@ -40,8 +40,6 @@ export async function login(formData: FormData) {
   }
 
   cookies().set('username', user?.username, { path: '/' });
-  cookies().set('role', user?.role, { path: '/' });
-
 
   revalidatePath('/', 'layout');
   redirect('/');

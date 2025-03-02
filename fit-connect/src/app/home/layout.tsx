@@ -39,8 +39,23 @@ export default function Layout({
 
   // Determine the active tab based on the pathname and menu
   useEffect(() => {
-    const userRole = Cookies.get('role') || 'user';
-    setRole(userRole);
+    // const userRole = Cookies.get('role') || 'user';
+    // setRole(userRole);
+
+    // Fetch the role from the server
+    async function fetchRole() {
+      try {
+        const res = await fetch('/api/user/role');
+        if (res.ok) {
+          const { role } = await res.json();
+          setRole(role);
+        }
+      } catch (error) {
+        console.error('Error fetching role:', error);
+      }
+    }
+
+    fetchRole();
 
     // Split the current pathname into segments
     const segments = pathname.split('/');
@@ -49,7 +64,7 @@ export default function Layout({
     if (segments[2] === 'admin') {
       const pathSegment = segments[3] || 'home';
       // Only mark as admin if the user is actually an admin.
-      if (userRole === 'admin') {
+      if (role === 'admin') {
         setActiveTab(`${pathSegment} (admin)`);
       } else {
         setActiveTab(pathSegment);

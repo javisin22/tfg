@@ -1,32 +1,43 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from './app/utils/supabase/middleware';
+import { createClient } from '@/utils/supabase/server';
 
 export async function middleware(request: NextRequest) {
-  // 1) Call the updateSession function to handle Supabase auth checks
-  let supabaseResponse = await updateSession(request);
+  // 1) Update the Supabase session
+  const supabaseResponse = await updateSession(request);
 
-  // 2) Extract the role from cookies
-  const role = request.cookies.get('role')?.value || 'user';
+  // 2) If accessing admin routes, verify admin permission server-side
+  if (request.nextUrl.pathname.startsWith('/home/admin')) {
+    try {
+      const supabase = createClient();
 
+      // getUser() verifies with the Supabase Auth server
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-  // 3) Check if user is visiting an admin page
-  if (request.nextUrl.pathname.startsWith('/home/admin') && role !== 'admin') {
-    // 4) Redirect them to /error
-    const url = request.nextUrl.clone();
-    url.pathname = '/error';
-    const redirectResponse = NextResponse.redirect(url);
+      // No authenticated user = no access
+      if (userError || !user) {
+        return NextResponse.redirect(new URL('/login', request.url));
+      }
 
-    // Now it's necessary to copy the cookies from supabaseResponse to ensure we don't lose session data
-    const originalCookies = supabaseResponse.cookies.getAll();
-    for (const cookie of originalCookies) redirectResponse.cookies.set(cookie.name, cookie.value);
+      // Check role from database using the verified user email
+      const { data: userData, error } = await supabase.from('users').select('role').eq('email', user.email).single();
 
-    return redirectResponse;
+      // If not admin, redirect to error page
+      if (error || userData?.role !== 'admin') {
+        return NextResponse.redirect(new URL('/error', request.url));
+      }
+    } catch (error) {
+      console.error('Error verifying admin access:', error);
+      return NextResponse.redirect(new URL('/error', request.url));
+    }
   }
 
-  // 5) Otherwise, allow the user to continue
   return supabaseResponse;
-  // return await updateSession(request);
 }
+
 
 export const config = {
   matcher: [

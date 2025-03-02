@@ -386,7 +386,7 @@ export default function SettingsScreen() {
         </div>
 
         {/* Notifications Card */}
-        <div className="border rounded-lg shadow-lg p-6 bg-white">
+        {/* <div className="border rounded-lg shadow-lg p-6 bg-white">
           <h2 className="text-2xl font-bold text-black">Notifications</h2>
           <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
@@ -408,7 +408,7 @@ export default function SettingsScreen() {
               />
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Save Changes Button */}
         <div className="flex justify-center">

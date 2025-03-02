@@ -9,8 +9,6 @@ import CreateGroupPopup from '../../../components/CreateGroupPopup';
 import InviteToGroupPopup from '../../../components/InviteToGroupPopUp';
 import { createClient } from '@/utils/supabase/client';
 
-import { Chat, Message } from '../../../types';
-
 export default function ChatsScreen() {
   const [userId, setUserId] = useState('');
   const { chats, setChats, activeChat, setActiveChat } = useChat();
@@ -348,11 +346,11 @@ export default function ChatsScreen() {
                       <p className="text-xs text-gray-500">{message.sender?.username}</p>
                     )}
                     <div
-                      className={`inline-block p-2 rounded-lg ${
+                      className={`inline-block p-2 rounded-lg max-w-[75%] overflow-hidden ${
                         message.senderId === userId ? 'bg-gray-100 text-primary-foreground' : 'bg-gray-300'
                       }`}
                     >
-                      <p className="text-sm text-gray-700">{message.content}</p>
+                      <p className="text-sm text-gray-700 break-words whitespace-pre-wrap">{message.content}</p>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">{new Date(message.timeStamp).toLocaleString()}</p>
                   </div>
