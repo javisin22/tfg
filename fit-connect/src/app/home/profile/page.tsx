@@ -7,6 +7,7 @@ import Cookies from 'js-cookie';
 import { formatDistanceToNow } from 'date-fns';
 import { Post } from '../../../types';
 import { createClient } from '@/utils/supabase/client';
+import { kgToLb, cmToFeetInches } from '@/utils/conversions';
 
 export default function ProfileScreen() {
   const [username, setUsername] = useState('');
@@ -126,17 +127,6 @@ export default function ProfileScreen() {
     const publicUrl = supabase.storage.from('post_media').getPublicUrl(fileName);
     console.log('Image uploaded has the publicUrl:', publicUrl.data?.publicUrl);
     return publicUrl.data?.publicUrl;
-  };
-
-  const kgToLb = (kg: number) => {
-    return (kg * 2.20462).toFixed(2);
-  };
-
-  const cmToFeetInches = (cm: number) => {
-    const totalInches = cm * 0.393701;
-    const feet = Math.floor(totalInches / 12);
-    const inches = totalInches - feet * 12;
-    return `${feet}ft ${inches.toFixed(1)}in`;
   };
 
   const handleLikePost = async (postId: string) => {

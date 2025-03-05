@@ -98,7 +98,9 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
           setLikedPosts((prevLikedPosts) => [...prevLikedPosts, postId]);
         } else if (data.action === 'disliked') {
           // Update the posts state to decrement likes
-          setPosts((prevPosts) => prevPosts.map((post) => (post.id === postId ? { ...post, likes: post.likes? - 1 : 0 } : post)));
+          setPosts((prevPosts) =>
+            prevPosts.map((post) => (post.id === postId ? { ...post, likes: Math.max(0, (post.likes || 0) - 1) } : post))
+          );
           // Remove postId from likedPosts
           setLikedPosts((prevLikedPosts) => prevLikedPosts.filter((id) => id !== postId));
         }

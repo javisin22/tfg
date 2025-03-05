@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import Loading from '../../../../components/Loading';
 import { useRouter } from 'next/navigation';
+import { kgToLb } from '@/utils/conversions';
 
 export default function FullWorkoutPage() {
   const { id } = useParams();
@@ -136,8 +137,6 @@ export default function FullWorkoutPage() {
   const toggleWeightUnit = () => {
     setIsWeightInKg(!isWeightInKg);
   };
-
-  const kgToLb = (kg: number) => (kg * 2.20462).toFixed(2);
 
   if (loading) {
     return <Loading />;

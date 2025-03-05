@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Eye, EyeOff, X, User } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
+import { kgToLb, lbToKg, cmToFeetInches, feetInchesToCm } from '@/utils/conversions';
 
 export default function SettingsScreen() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [notifications, setNotifications] = useState(true);
+  // const [notifications, setNotifications] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -160,28 +161,6 @@ export default function SettingsScreen() {
         console.error('Error deleting account:', error);
       }
     }
-  };
-
-  const kgToLb = (kg: number) => {
-    return (kg * 2.20462).toFixed(2);
-  };
-
-  const lbToKg = (lb: number) => {
-    return (lb / 2.20462).toFixed(2);
-  };
-
-  // Converts centimeters to a string in the format "Xft Yin" with inches rounded to one decimal.
-  const cmToFeetInches = (cm: number) => {
-    const totalInches = cm * 0.393701;
-    const feet = Math.floor(totalInches / 12);
-    const inches = totalInches - feet * 12; // preserves the decimal part
-    return `${feet}ft ${inches.toFixed(1)}in`; // example: "5ft 7.3in"
-  };
-
-  // Converts feet and inches (as numbers) back to centimeters.
-  const feetInchesToCm = (feet: number, inches: number) => {
-    const totalInches = feet * 12 + inches;
-    return (totalInches / 0.393701).toFixed(2); // returns a string with 2 decimals
   };
 
   // Toggles between weight units (kg <-> lb)
