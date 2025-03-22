@@ -91,44 +91,38 @@ export function CreatePostScreen({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="p-4">
-      <h3 className="text-lg font-semibold mb-2 mt-6">Upload image</h3>
+    <div className="overflow-y-auto h-[calc(100vh-120px)] p-2 sm:p-4">
+      <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 mt-3 sm:mt-6">Upload image</h3>
 
       <div
-        className={`relative flex items-center justify-center border-2 border-dashed rounded-lg p-6 transition-colors ${
+        className={`relative flex items-center justify-center border-2 border-dashed rounded-lg p-3 sm:p-6 transition-colors ${
           isDragging ? 'border-primary bg-primary/10' : 'border-gray-300 bg-gray-100 bg-opacity-30'
         }`}
-        style={{ minHeight: '300px' }}
+        style={{ minHeight: '200px', maxHeight: '250px', height: '30vh' }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         {imagePreview ? (
           <div className="absolute inset-0 m-2">
-            <Image
-              src={imagePreview}
-              alt="Uploaded"
-              fill
-              style={{ objectFit: 'contain' }}
-              className="rounded-lg"
-            />
+            <Image src={imagePreview} alt="Uploaded" fill style={{ objectFit: 'contain' }} className="rounded-lg" />
             <button
-              className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-md hover:bg-gray-100 transition-colors"
+              className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-white p-0.5 sm:p-1 rounded-full shadow-md hover:bg-gray-100 transition-colors"
               onClick={() => {
                 setImage(null);
                 setImagePreview(null);
               }}
             >
-              <X className="h-4 w-4 text-black" />
+              <X className="h-3 w-3 sm:h-4 sm:w-4 text-black" />
             </button>
           </div>
         ) : (
           <div className="text-center">
-            <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <div className="mt-4 flex text-sm leading-6 text-gray-600">
+            <ImageIcon className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-400" />
+            <div className="mt-2 sm:mt-4 flex flex-col sm:flex-row text-xs sm:text-sm leading-5 sm:leading-6 text-gray-600">
               <label
                 htmlFor="image-upload"
-                className="relative cursor-pointer rounded-md bg-white font-semibold text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 hover:text-primary-dark"
+                className="relative cursor-pointer rounded-md bg-white px-1.5 py-1 sm:px-2.5 sm:py-1.5 mb-1 sm:mb-0 font-semibold text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 hover:text-primary-dark"
               >
                 <span>Upload a file</span>
                 <input
@@ -143,29 +137,30 @@ export function CreatePostScreen({ onClose }: { onClose: () => void }) {
                   accept="image/*"
                 />
               </label>
-              <p className="pl-1 text-gray-200">or drag and drop</p>
+              <p className="pl-0 sm:pl-1 text-gray-200">or drag and drop</p>
             </div>
-            <p className="text-xs leading-5 text-gray-200">PNG, JPG, GIF up to 10MB</p>
+            <p className="text-[10px] sm:text-xs leading-4 sm:leading-5 text-gray-200">PNG, JPG, GIF up to 10MB</p>
           </div>
         )}
       </div>
 
-      <h3 className="text-lg font-semibold mb-2 mt-6">Description</h3>
+      <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 mt-3 sm:mt-6">Description</h3>
       <textarea
-        className="w-full border border-gray-300 p-2 rounded-md mb-4 text-black"
+        className="w-full border border-gray-300 p-1.5 sm:p-2 text-xs sm:text-sm rounded-md mb-3 sm:mb-4 text-black"
         placeholder="What's on your mind?"
+        rows={4}
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
-      <div className="flex justify-end space-x-2">
+      <div className="flex justify-end space-x-1 sm:space-x-2">
         <button
-          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+          className="px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
           onClick={onClose}
         >
           Cancel
         </button>
         <button
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+          className="px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
           onClick={handleNewPost}
         >
           Post

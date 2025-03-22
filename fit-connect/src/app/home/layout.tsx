@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Calendar, Dumbbell, HomeIcon, MessageCircle, Settings, User, X, Menu, ShieldPlus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Calendar, Dumbbell, HomeIcon, MessageCircle, Settings, User, X, Menu, ShieldPlus, ChevronLeft } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Logout from '../../components/Logout';
@@ -18,7 +18,9 @@ export default function Layout({
   const pathname = usePathname();
   const [role, setRole] = useState('user');
   const [activeTab, setActiveTab] = useState<string>(pathname.split('/')[2] || 'home');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const initialRenderRef = useRef(true);
 
   const menuItems = [
     { label: 'Home', icon: HomeIcon, href: '/home' },
@@ -37,11 +39,31 @@ export default function Layout({
 
   const finalMenuItems = role === 'admin' ? [...menuItems, ...adminMenuItems] : menuItems;
 
+  // Detect screen size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const isSmall = window.innerWidth < 768;
+      setIsSmallScreen(isSmall);
+
+      // Only auto-open/close sidebar on initial render
+      if (initialRenderRef.current) {
+        setIsSidebarOpen(!isSmall);
+        initialRenderRef.current = false;
+      }
+    };
+
+    // Check on initial load
+    checkScreenSize();
+
+    // Add resize listener
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   // Determine the active tab based on the pathname and menu
   useEffect(() => {
-    // const userRole = Cookies.get('role') || 'user';
-    // setRole(userRole);
-
     // Fetch the role from the server
     async function fetchRole() {
       try {
@@ -80,22 +102,36 @@ export default function Layout({
   };
 
   const handleMenuItemClick = () => {
-    setIsSidebarOpen(false);
+    // Only close sidebar on small screens when clicking menu items
+    if (isSmallScreen) {
+      setIsSidebarOpen(false);
+    }
   };
 
   return (
     <ChatProvider>
       <EventsProvider>
         <div className="flex h-screen">
-          {/* Sidebar */}
+          {/* Sidebar with collapsible behavior on all screen sizes */}
           <div
-            className={`fixed inset-y-0 left-0 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:relative md:translate-x-0 w-60 p-4 bg-gray-800 text-white z-50`}
+            className={`fixed inset-y-0 left-0 transform ${
+              isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            } transition-transform duration-300 ease-in-out ${
+              isSidebarOpen ? 'md:relative' : 'md:absolute'
+            } w-52 md:w-60 p-4 bg-gray-800 text-white z-50`}
           >
             <div className="flex justify-between items-center mb-4">
-              <h1 className="text-2xl font-bold">FitConnect</h1>
-              <button className="md:hidden" onClick={handleSidebarToggle}>
-                <X className="w-6 h-6 text-white" />
-              </button>
+              <h1 className="text-xl md:text-2xl font-bold">FitConnect</h1>
+              <div className="flex items-center">
+                {/* Left arrow to collapse sidebar */}
+                <button
+                  className="text-white hover:text-gray-300 focus:outline-none ml-2"
+                  onClick={handleSidebarToggle}
+                  aria-label="Collapse sidebar"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             <nav className="space-y-2">
               {finalMenuItems.map((item) => {
@@ -105,15 +141,15 @@ export default function Layout({
                   <div key={item.label}>
                     <Link href={item.href}>
                       <button
-                        className={`w-full text-lg text-left py-2 px-4 rounded-md ${
+                        className={`w-full text-sm md:text-base lg:text-lg text-left py-2 px-4 rounded-md ${
                           isActive ? 'bg-gray-200 bg-opacity-80 text-black' : ''
                         }`}
                         onClick={handleMenuItemClick}
                       >
-                        <div className="relative inline-block w-6 h-6 mr-2">
-                          <item.icon className="inline-block w-5 h-5 mr-2" />
+                        <div className="relative inline-block w-5 h-5 md:w-6 md:h-6 mr-2">
+                          <item.icon className="inline-block w-4 h-4 md:w-5 md:h-5 mr-2" />
                           {role === 'admin' && adminMenuItems.some((adminItem) => adminItem.label === item.label) && (
-                            <ShieldPlus className="absolute w-4 h-4 -top-1 -right-1" />
+                            <ShieldPlus className="absolute w-3 h-3 md:w-4 md:h-4 -top-1 -right-1" />
                           )}
                         </div>
                         {item.label}
@@ -129,21 +165,25 @@ export default function Layout({
             </div>
           </div>
 
-          {/* Burger Icon */}
+          {/* Burger Icon - visible on all screen sizes when sidebar is closed */}
           {!isSidebarOpen && (
-            <button className="md:hidden fixed top-4 left-4 z-50" onClick={handleSidebarToggle}>
+            <button className="fixed top-3 left-3 z-50" onClick={handleSidebarToggle} aria-label="Open sidebar">
               <Menu className="w-6 h-6 text-white" />
             </button>
           )}
 
-          {/* Main content */}
-          <div className="flex-1 overflow-hidden p-4 bg-slate-700 text-white">
+          {/* Main content - expands when sidebar is closed */}
+          <div
+            className={`flex-1 overflow-hidden p-4 bg-slate-700 text-white transition-all duration-300 ${
+              !isSidebarOpen ? 'w-full' : 'md:w-[calc(100%-15rem)]'
+            }`}
+          >
             <div className="max-w-5xl mx-auto">
               {/* Top bar */}
               <div className="flex justify-between items-center mb-4">
-                {/* Active tab */}
-                <div className="flex-1 ml-10 md:ml-16">
-                  <span className="text-xl font-bold">{activeTab}</span>
+                {/* Active tab - adjust margin based on sidebar state */}
+                <div className={`flex-1 ${!isSidebarOpen ? 'ml-10' : ''} lg:ml-0`}>
+                  <span className="text-lg md:text-xl font-bold">{activeTab}</span>
                 </div>
                 {/* Search bar */}
                 <div className="flex-1 flex justify-center">
@@ -153,7 +193,7 @@ export default function Layout({
                 <div className="hidden md:flex flex-1 justify-end">
                   <Logout />
                 </div>
-              </div>{' '}
+              </div>
               <hr className="my-4" />
               {children}
             </div>
