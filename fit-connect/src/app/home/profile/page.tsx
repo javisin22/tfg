@@ -298,7 +298,7 @@ export default function ProfileScreen() {
 
       {/* Edit Post Dialog */}
       {editingPost && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[60]">
           <div className="bg-white rounded-lg p-6 space-y-4 w-[90%] max-w-lg">
             <h3 className="text-lg font-medium text-gray-900">Edit Post</h3>
             <p className="text-sm text-gray-500">Make changes to your post here. Click save when you're done.</p>

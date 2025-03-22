@@ -37,7 +37,7 @@ export default function InviteToGroupPopup({
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
       <div className="bg-white p-4 rounded shadow-md w-80">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Invite to Group</h2>
+          <h2 className="text-lg font-semibold text-black">Invite to Group</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
             X
           </button>
