@@ -308,13 +308,13 @@ export default function ChatsScreen() {
               <div className="flex space-x-1">
                 <button
                   onClick={() => setIsInvitingUser(true)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded-md"
+                  className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-2 py-1 rounded-md"
                 >
                   Invite
                 </button>
                 <button
                   onClick={handleLeaveGroup}
-                  className="bg-red-500 hover:bg-red-700 text-white text-xs px-2 py-1 rounded-md"
+                  className="bg-red-500 hover:bg-red-700 text-white text-sm px-2 py-1 rounded-md"
                 >
                   Leave
                 </button>

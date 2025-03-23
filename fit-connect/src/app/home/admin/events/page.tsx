@@ -72,36 +72,36 @@ export default function EventsAdminPage() {
   }
 
   return (
-    <div className="p-4 text-white h-[calc(100vh-120px)] overflow-y-auto">
-      <h1 className="text-2xl font-bold mb-4">Manage Events</h1>
+    <div className="p-2 sm:p-4 text-white h-[calc(100vh-120px)] overflow-y-auto">
+      <h1 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-4">Manage Events</h1>
 
       {/* Search Bar */}
-      <div className="relative mb-4 max-w-md">
+      <div className="relative mb-2 sm:mb-4 max-w-md">
         <input
           type="text"
           placeholder="Search events..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-2 pl-10 border rounded text-black"
+          className="w-full p-1.5 sm:p-2 pl-8 sm:pl-10 border rounded text-black text-xs sm:text-sm"
         />
-        <Search className="absolute left-3 top-2.5 h-5 w-5 text-black" />
+        <Search className="absolute left-2 sm:left-3 top-2 sm:top-2.5 h-4 sm:h-5 w-4 sm:w-5 text-black" />
       </div>
 
-      {isLoading && <p className="text-gray-300">Loading events...</p>}
-      {!isLoading && events.length === 0 && <p className="text-gray-300">No events found.</p>}
+      {isLoading && <p className="text-gray-300 text-xs sm:text-sm">Loading events...</p>}
+      {!isLoading && events.length === 0 && <p className="text-gray-300 text-xs sm:text-sm">No events found.</p>}
 
       {/* Events List */}
-      <div className="max-h-96 overflow-y-auto border border-gray-300 rounded bg-white text-black mb-4">
+      <div className="max-h-64 sm:max-h-96 overflow-y-auto border border-gray-300 rounded bg-white text-black mb-2 sm:mb-4">
         {events.map((ev) => {
           const isSelected = selectedEvents.some((e) => e.id === ev.id);
           return (
             <div
               key={ev.id}
-              className="flex gap-4 p-4 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
+              className="flex gap-2 sm:gap-4 p-2 sm:p-4 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
               onClick={() => toggleEventSelection(ev)}
             >
               {/* Media Preview */}
-              <div className="w-20 h-20 relative rounded overflow-hidden flex-shrink-0">
+              <div className="w-14 h-14 sm:w-20 sm:h-20 relative rounded overflow-hidden flex-shrink-0">
                 {ev.media ? (
                   <Image
                     src={ev.media}
@@ -110,14 +110,19 @@ export default function EventsAdminPage() {
                     className="object-cover"
                   />
                 ) : (
-                  <ImageIcon className="h-20 w-20 text-gray-300" />
+                  <div className="h-full w-full flex items-center justify-center bg-gray-200">
+                    <ImageIcon className="h-10 w-10 sm:h-16 sm:w-16 text-gray-300" />
+                  </div>
                 )}
               </div>
 
               {/* Main Info */}
               <div className="flex-1">
-                <div className="font-semibold text-black">{ev.name}</div>
-                <div className="text-sm text-gray-500">{ev.description?.slice(0, 70) || 'No description'}...</div>
+                <div className="font-semibold text-black text-sm sm:text-base">{ev.name}</div>
+                <div className="text-xs sm:text-sm text-gray-500">
+                  {ev.description?.slice(0, 50) || 'No description'}
+                  {(ev.description?.length || 0) > 50 ? '...' : ''}
+                </div>
                 {ev.date && (
                   <div className="text-xs text-gray-600">
                     Date: {new Date(ev.date).toLocaleDateString()} {new Date(ev.date).toLocaleTimeString()}
@@ -129,7 +134,7 @@ export default function EventsAdminPage() {
               {/* Selection Check Icon */}
               {isSelected && (
                 <div className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500" />
+                  <Check className="h-4 sm:h-5 w-4 sm:w-5 text-green-500" />
                 </div>
               )}
             </div>
@@ -139,12 +144,12 @@ export default function EventsAdminPage() {
 
       {/* Selected Events */}
       {selectedEvents.length > 0 && (
-        <div className="mb-4 bg-white p-4 rounded text-black">
-          <h3 className="text-lg font-semibold mb-2">Selected Events</h3>
-          <div className="flex flex-wrap gap-2">
+        <div className="mb-2 sm:mb-4 bg-white p-2 sm:p-4 rounded text-black">
+          <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">Selected Events</h3>
+          <div className="flex flex-wrap gap-1 sm:gap-2">
             {selectedEvents.map((ev) => (
-              <div key={ev.id} className="flex items-center p-2 bg-gray-200 rounded-full">
-                <span className="truncate max-w-[200px] mr-1">{ev.name}</span>
+              <div key={ev.id} className="flex items-center p-1 sm:p-2 bg-gray-200 rounded-full text-xs sm:text-sm">
+                <span className="truncate max-w-[120px] sm:max-w-[200px] mr-1">{ev.name}</span>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -152,7 +157,7 @@ export default function EventsAdminPage() {
                   }}
                   className="text-red-500 hover:text-red-700"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 sm:h-4 w-3 sm:w-4" />
                 </button>
               </div>
             ))}
@@ -165,7 +170,7 @@ export default function EventsAdminPage() {
         <button
           onClick={deleteSelectedEvents}
           disabled={selectedEvents.length === 0}
-          className={`px-4 py-2 rounded ${
+          className={`px-3 sm:px-4 py-1 sm:py-2 rounded text-xs sm:text-sm ${
             selectedEvents.length === 0 ? 'bg-gray-500 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'
           } text-white`}
         >

@@ -9,7 +9,6 @@ import { kgToLb, lbToKg, cmToFeetInches, feetInchesToCm } from '@/utils/conversi
 export default function SettingsScreen() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  // const [notifications, setNotifications] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -31,7 +30,6 @@ export default function SettingsScreen() {
 
   // Retrieve the user information from the server
   useEffect(() => {
-    // Fetch user data from the server
     fetch('/api/user/info')
       .then((res) => res.json())
       .then((data) => {
@@ -43,7 +41,6 @@ export default function SettingsScreen() {
       })
       .catch((error) => {
         console.error('Error fetching user data:', error);
-        // Handle error (show error message to user)
       });
   }, []);
 
@@ -52,14 +49,14 @@ export default function SettingsScreen() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
-        e.returnValue = ''; // This line is necessary for some browsers to show the confirmation dialog
+        e.returnValue = '';
       }
     };
 
     const handlePopState = (e: PopStateEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
-        (e as any).returnValue = ''; // This line is necessary for some browsers to show the confirmation dialog
+        (e as any).returnValue = '';
         if (confirm('You have unsaved changes. Do you want to leave without saving?')) {
           setHasUnsavedChanges(false);
           window.history.back();
@@ -107,7 +104,6 @@ export default function SettingsScreen() {
       return null;
     }
 
-    console.log('Image uploaded has the publicUrl:', publicUrl.data.publicUrl);
     return publicUrl.data.publicUrl;
   };
 
@@ -132,8 +128,6 @@ export default function SettingsScreen() {
       }
 
       const data = await response.json();
-      console.log('Changes saved:', data);
-
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error saving changes:', error);
@@ -153,9 +147,6 @@ export default function SettingsScreen() {
         }
 
         const data = await response.json();
-        console.log('Account deleted:', data);
-
-        // Redirect the user to the login page ('/login')
         window.location.href = '/login';
       } catch (error) {
         console.error('Error deleting account:', error);
@@ -167,9 +158,7 @@ export default function SettingsScreen() {
   const toggleWeightUnit = () => {
     setFormData({
       ...formData,
-      weight: isWeightInKg
-        ? kgToLb(Number(formData.weight)).toString() // convert kg to lb
-        : lbToKg(Number(formData.weight)).toString(), // convert lb to kg
+      weight: isWeightInKg ? kgToLb(Number(formData.weight)).toString() : lbToKg(Number(formData.weight)).toString(),
     });
     setIsWeightInKg(!isWeightInKg);
   };
@@ -178,12 +167,10 @@ export default function SettingsScreen() {
   const toggleHeightUnit = () => {
     setIsHeightInCm(!isHeightInCm);
     if (isHeightInCm) {
-      // Convert cm to feet and inches
       const heightInCm = Number(formData.height);
       const heightInFeetInches = cmToFeetInches(heightInCm);
       setFormData({ ...formData, height: heightInFeetInches });
     } else {
-      // Convert feet and inches back to cm
       const [feetStr, inchesStr] = formData.height.split('ft');
       const feet = Number(feetStr);
       const inches = Number(inchesStr.replace('in', ''));
@@ -194,12 +181,12 @@ export default function SettingsScreen() {
 
   return (
     <div className="h-[calc(100vh-120px)] overflow-y-auto">
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
         {/* Account Settings Card */}
-        <div className="border rounded-lg shadow-lg p-6 bg-white">
-          <h2 className="text-2xl font-bold text-black">Account Settings</h2>
-          <div className="space-y-4 mt-4">
-            <div className="flex items-center space-x-4">
+        <div className="border rounded-lg shadow-lg p-3 sm:p-6 bg-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-black">Account Settings</h2>
+          <div className="space-y-3 sm:space-y-4 mt-2 sm:mt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
               {imagePreview ? (
                 <div className="relative">
                   <Image
@@ -207,7 +194,7 @@ export default function SettingsScreen() {
                     alt="Profile Picture"
                     width={80}
                     height={80}
-                    className="w-20 h-20 rounded-full border-4 border-gray-800 object-cover"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-gray-800 object-cover"
                   />
                   <button
                     className="absolute top-0 right-0 bg-white p-1 rounded-full shadow-md hover:bg-gray-100 transition-colors"
@@ -217,17 +204,17 @@ export default function SettingsScreen() {
                       setHasUnsavedChanges(true);
                     }}
                   >
-                    <X className="h-4 w-4 text-black" />
+                    <X className="h-3 w-3 sm:h-4 sm:w-4 text-black" />
                   </button>
                 </div>
               ) : (
-                <User className="w-20 h-20 text-gray-800 rounded-full border-4 border-gray-800" />
+                <User className="w-16 h-16 sm:w-20 sm:h-20 text-gray-800 rounded-full border-4 border-gray-800" />
               )}
               <label
                 htmlFor="image-upload"
                 className="relative cursor-pointer rounded-md bg-blue-100 hover:bg-blue-300 p-1 font-semibold text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 hover:text-primary-dark"
               >
-                <span className="text-black">Change avatar</span>
+                <span className="text-black text-xs sm:text-sm">Change avatar</span>
                 <input
                   id="image-upload"
                   name="image-upload"
@@ -242,8 +229,8 @@ export default function SettingsScreen() {
               </label>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="username" className="block text-sm font-medium text-black">
+            <div className="space-y-1 sm:space-y-2">
+              <label htmlFor="username" className="block text-xs sm:text-sm font-medium text-black">
                 Username
               </label>
               <input
@@ -251,12 +238,12 @@ export default function SettingsScreen() {
                 value={formData.username}
                 onChange={handleInputChange}
                 placeholder="Current username"
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
+                className="w-full p-1.5 sm:p-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="biography" className="block text-sm font-medium text-black">
+            <div className="space-y-1 sm:space-y-2">
+              <label htmlFor="biography" className="block text-xs sm:text-sm font-medium text-black">
                 Biography
               </label>
               <input
@@ -264,13 +251,13 @@ export default function SettingsScreen() {
                 value={formData.biography}
                 onChange={handleInputChange}
                 placeholder="Current biography"
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
+                className="w-full p-1.5 sm:p-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
               />
             </div>
 
-            <div className="flex justify-start gap-8 w-40">
-              <div className="space-y-2">
-                <label htmlFor="weight" className="block text-sm font-medium text-black">
+            <div className="flex flex-col sm:flex-row justify-start gap-3 sm:gap-8">
+              <div className="space-y-1 sm:space-y-2">
+                <label htmlFor="weight" className="block text-xs sm:text-sm font-medium text-black">
                   Weight ({isWeightInKg ? 'kg' : 'lb'})
                 </label>
                 <input
@@ -278,19 +265,19 @@ export default function SettingsScreen() {
                   type="number"
                   value={formData.weight}
                   onChange={handleInputChange}
-                  className="w-24 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
+                  className="w-full sm:w-24 p-1.5 sm:p-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
                 />
                 <button
                   type="button"
                   onClick={toggleWeightUnit}
-                  className="text-sm rounded-md p-1 bg-blue-100 hover:bg-blue-300 text-black"
+                  className="text-xs sm:text-sm rounded-md p-1 bg-blue-100 hover:bg-blue-300 text-black"
                 >
                   Convert to {isWeightInKg ? 'lb' : 'kg'}
                 </button>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="height" className="block text-sm font-medium text-black">
+              <div className="space-y-1 sm:space-y-2 mt-3 sm:mt-0">
+                <label htmlFor="height" className="block text-xs sm:text-sm font-medium text-black">
                   Height ({isHeightInCm ? 'cm' : 'feet and inches'})
                 </label>
                 <input
@@ -298,12 +285,12 @@ export default function SettingsScreen() {
                   type="text"
                   value={formData.height}
                   onChange={handleInputChange}
-                  className="w-24 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
+                  className="w-full sm:w-24 p-1.5 sm:p-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
                 />
                 <button
                   type="button"
                   onClick={toggleHeightUnit}
-                  className="text-sm rounded-md p-1 bg-blue-100 hover:bg-blue-300 text-black"
+                  className="text-xs sm:text-sm rounded-md p-1 bg-blue-100 hover:bg-blue-300 text-black"
                 >
                   Convert to {isHeightInCm ? 'feet and inches' : 'cm'}
                 </button>
@@ -313,11 +300,11 @@ export default function SettingsScreen() {
         </div>
 
         {/* Security Card */}
-        <div className="border rounded-lg shadow-lg p-6 bg-white">
-          <h2 className="text-2xl font-bold text-black">Security</h2>
-          <div className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <label htmlFor="currentPassword" className="block text-sm font-medium text-black">
+        <div className="border rounded-lg shadow-lg p-3 sm:p-6 bg-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-black">Security</h2>
+          <div className="space-y-3 sm:space-y-4 mt-2 sm:mt-4">
+            <div className="space-y-1 sm:space-y-2">
+              <label htmlFor="currentPassword" className="block text-xs sm:text-sm font-medium text-black">
                 Current Password
               </label>
               <div className="relative">
@@ -327,20 +314,20 @@ export default function SettingsScreen() {
                   value={formData.currentPassword}
                   onChange={handleInputChange}
                   placeholder="Current password"
-                  className="w-full p-2 text-black border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full p-1.5 sm:p-2 text-xs sm:text-sm text-black border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
                 <button
                   type="button"
-                  className="absolute right-0 top-0 p-2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-0 top-0 p-1.5 sm:p-2 text-gray-500 hover:text-gray-700"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                 >
-                  {showCurrentPassword ? <EyeOff /> : <Eye />}
+                  {showCurrentPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </button>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="newPassword" className="block text-sm font-medium text-black">
+            <div className="space-y-1 sm:space-y-2">
+              <label htmlFor="newPassword" className="block text-xs sm:text-sm font-medium text-black">
                 New Password
               </label>
               <div className="relative">
@@ -350,49 +337,24 @@ export default function SettingsScreen() {
                   value={formData.newPassword}
                   onChange={handleInputChange}
                   placeholder="New password"
-                  className="w-full p-2 text-black border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full p-1.5 sm:p-2 text-xs sm:text-sm text-black border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
                 <button
                   type="button"
-                  className="absolute right-0 top-0 p-2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-0 top-0 p-1.5 sm:p-2 text-gray-500 hover:text-gray-700"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                 >
-                  {showNewPassword ? <EyeOff /> : <Eye />}
+                  {showNewPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Notifications Card */}
-        {/* <div className="border rounded-lg shadow-lg p-6 bg-white">
-          <h2 className="text-2xl font-bold text-black">Notifications</h2>
-          <div className="space-y-4 mt-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <label htmlFor="notifications" className="block text-sm font-medium text-black">
-                  Enable Notifications
-                </label>
-                <p className="text-sm text-gray-700">Receive notifications about your activity</p>
-              </div>
-              <input
-                type="checkbox"
-                id="notifications"
-                className="h-5 w-5 rounded-full border-gray-300 text-primary focus:ring-primary"
-                checked={notifications}
-                onChange={() => {
-                  setNotifications(!notifications);
-                  setHasUnsavedChanges(true);
-                }}
-              />
-            </div>
-          </div>
-        </div> */}
-
         {/* Save Changes Button */}
         <div className="flex justify-center">
           <button
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400"
+            className="px-4 sm:px-6 py-1.5 sm:py-2 bg-blue-500 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-600 disabled:bg-gray-400"
             onClick={handleSaveChanges}
             disabled={!hasUnsavedChanges}
           >
@@ -401,11 +363,16 @@ export default function SettingsScreen() {
         </div>
 
         {/* Delete Account */}
-        <div className="border rounded-lg shadow-lg p-6 mt-6 bg-white">
-          <h2 className="text-2xl font-bold text-black">Delete Account</h2>
-          <p className="text-sm text-black mt-2">Once you delete this account, there's no going back. Please be certain.</p>
-          <div className="flex justify-start mt-4">
-            <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600" onClick={handleDeleteAccount}>
+        <div className="border rounded-lg shadow-lg p-3 sm:p-6 mt-3 sm:mt-6 bg-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-black">Delete Account</h2>
+          <p className="text-xs sm:text-sm text-black mt-2">
+            Once you delete this account, there's no going back. Please be certain.
+          </p>
+          <div className="flex justify-start mt-3 sm:mt-4">
+            <button
+              className="px-3 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm bg-red-500 text-white rounded-lg hover:bg-red-600"
+              onClick={handleDeleteAccount}
+            >
               Delete Account
             </button>
           </div>

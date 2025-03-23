@@ -144,8 +144,18 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
               </div>
               {/* Post media */}
               <div>
-                <Image src={post?.media} alt="Post" className="rounded-md mb-2 sm:mb-4 w-full h-auto" width="200" height="200" />
-                <p className="text-xs sm:text-sm text-gray-700">{post.description}</p>
+                <div className="flex justify-center">
+                  <div className="w-full md:w-4/5 lg:w-3/4 xl:w-2/3">
+                    <Image
+                      src={post?.media}
+                      alt="Post"
+                      className="rounded-md mb-2 sm:mb-4 w-full h-auto"
+                      width="800"
+                      height="600"
+                    />
+                  </div>
+                </div>
+                <p className="mt-2 text-xs sm:text-sm text-gray-700">{post.description}</p>
               </div>
               {/* Post like and comment numbers */}
               <div className="mt-2 sm:mt-4">

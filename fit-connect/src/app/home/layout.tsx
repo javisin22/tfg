@@ -182,7 +182,7 @@ export default function Layout({
               {/* Top bar */}
               <div className="flex justify-between items-center mb-4">
                 {/* Active tab - adjust margin based on sidebar state */}
-                <div className={`flex-1 ${!isSidebarOpen ? 'ml-10' : ''} lg:ml-0`}>
+                <div className={`flex-1 ${!isSidebarOpen ? 'ml-6 md:ml-10' : ''} lg:ml-0`}>
                   <span className="text-lg md:text-xl font-bold">{activeTab}</span>
                 </div>
                 {/* Search bar */}

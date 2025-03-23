@@ -74,72 +74,72 @@ export default function UsersAdminPage() {
   }
 
   return (
-    <div className="p-4 text-white h-[calc(100vh-120px)] overflow-y-auto">
-      <h1 className="text-2xl font-bold mb-4">Manage Users</h1>
+    <div className="p-2 sm:p-4 text-white h-[calc(100vh-120px)] overflow-y-auto">
+      <h1 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-4">Manage Users</h1>
 
       {/* Search Bar */}
-      <div className="relative mb-4 max-w-md">
+      <div className="relative mb-2 sm:mb-4 w-full max-w-md">
         <input
           type="text"
           placeholder="Search users..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-2 pl-10 border rounded text-black"
+          className="w-full p-1.5 sm:p-2 pl-8 sm:pl-10 border rounded text-black text-xs sm:text-sm"
         />
-        <Search className="absolute left-3 top-2.5 h-5 w-5 text-black" />
+        <Search className="absolute left-2 sm:left-3 top-2 sm:top-2.5 h-4 sm:h-5 w-4 sm:w-5 text-black" />
       </div>
 
-      {isLoading && <p className="text-gray-300">Loading users...</p>}
+      {isLoading && <p className="text-gray-300 text-xs sm:text-sm">Loading users...</p>}
 
-      {!isLoading && users.length === 0 && <p className="text-gray-300">No users found.</p>}
+      {!isLoading && users.length === 0 && <p className="text-gray-300 text-xs sm:text-sm">No users found.</p>}
 
       {/* Users List */}
-      <div className="max-h-96 overflow-y-auto border border-gray-300 rounded bg-white text-black mb-4">
+      <div className="max-h-64 sm:max-h-96 overflow-y-auto border border-gray-300 rounded bg-white text-black mb-2 sm:mb-4">
         {users.map((user) => (
           <div
             key={user.id}
-            className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+            className="flex items-center p-1.5 sm:p-2 hover:bg-gray-100 cursor-pointer"
             onClick={() => toggleUserSelection(user)}
           >
-            <div className="w-8 h-8 rounded-full bg-gray-300 mr-3">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 mr-2 sm:mr-3">
               {user.profilePicture ? (
                 <Image
                   src={user.profilePicture}
                   alt={user.username}
                   width={32}
                   height={32}
-                  className="w-8 h-8 rounded-full object-cover border-2 border-gray-500"
+                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-gray-500"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg bg-gray-300 border-2 border-gray-500">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm sm:text-lg bg-gray-300 border-2 border-gray-500">
                   {user.username[0]?.toUpperCase()}
                 </div>
               )}
             </div>
-            <span className="text-black">{user.username}</span>
-            {selectedUsers.some((u) => u.id === user.id) && <Check className="ml-auto h-5 w-5 text-green-500" />}
+            <span className="text-black text-xs sm:text-sm">{user.username}</span>
+            {selectedUsers.some((u) => u.id === user.id) && <Check className="ml-auto h-4 sm:h-5 w-4 sm:w-5 text-green-500" />}
           </div>
         ))}
       </div>
 
       {/* Selected Users */}
       {selectedUsers.length > 0 && (
-        <div className="mb-4 bg-white p-4 rounded text-black">
-          <h3 className="text-lg font-semibold mb-2">Selected Users</h3>
-          <div className="flex flex-wrap gap-2">
+        <div className="mb-2 sm:mb-4 bg-white p-2 sm:p-4 rounded text-black">
+          <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">Selected Users</h3>
+          <div className="flex flex-wrap gap-1 sm:gap-2">
             {selectedUsers.map((user) => (
-              <div key={user.id} className="flex items-center p-2 bg-gray-200 rounded-full">
-                <div className="w-8 h-8 rounded-full bg-gray-300 mr-2">
+              <div key={user.id} className="flex items-center p-1 sm:p-2 bg-gray-200 rounded-full text-xs sm:text-sm">
+                <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-gray-300 mr-1 sm:mr-2">
                   {user.profilePicture ? (
                     <Image
                       src={user.profilePicture}
                       alt={user.username}
                       width={32}
                       height={32}
-                      className="w-8 h-8 rounded-full object-cover border-2 border-gray-500"
+                      className="w-5 h-5 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-gray-500"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg bg-gray-300 border-2 border-gray-500">
+                    <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm sm:text-lg bg-gray-300 border-2 border-gray-500">
                       {user.username[0]?.toUpperCase()}
                     </div>
                   )}
@@ -150,9 +150,9 @@ export default function UsersAdminPage() {
                     e.stopPropagation();
                     removeSelectedUser(user);
                   }}
-                  className="ml-2 text-red-500 hover:text-red-700"
+                  className="ml-1 sm:ml-2 text-red-500 hover:text-red-700"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 w-3 sm:h-4 sm:w-4" />
                 </button>
               </div>
             ))}
@@ -165,7 +165,7 @@ export default function UsersAdminPage() {
         <button
           onClick={deleteSelectedUsers}
           disabled={selectedUsers.length === 0}
-          className={`px-4 py-2 rounded ${
+          className={`px-3 sm:px-4 py-1 sm:py-2 rounded text-xs sm:text-sm ${
             selectedUsers.length === 0 ? 'bg-gray-500 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'
           } text-white`}
         >
