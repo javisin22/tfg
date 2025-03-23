@@ -160,7 +160,7 @@ export default function SearchBar() {
                     alt={result.username}
                     width={24}
                     height={24}
-                    className="w-6 h-6 rounded-full mr-2 object-cover"
+                    className="w-6 h-6 rounded-full mr-2 object-cover flex-shrink-0"
                   />
                 ) : result.avatar ? (
                   <Image
@@ -168,16 +168,16 @@ export default function SearchBar() {
                     alt={result.name}
                     width={24}
                     height={24}
-                    className="w-6 h-6 rounded-full mr-2 object-cover"
+                    className="w-6 h-6 rounded-full mr-2 object-cover flex-shrink-0"
                   />
                 ) : result.isGroup ? (
-                  <GroupIcon className="w-6 h-6 rounded-full mr-2" />
+                  <GroupIcon className="w-6 h-6 rounded-full mr-2 flex-shrink-0" />
                 ) : result.date ? (
-                  <Calendar className="w-6 h-6 rounded-full mr-2" />
+                  <Calendar className="w-6 h-6 rounded-full mr-2 flex-shrink-0" />
                 ) : (
-                  <UserIcon className="w-6 h-6 rounded-full mr-2" />
+                  <UserIcon className="w-6 h-6 rounded-full mr-2 flex-shrink-0" />
                 )}
-                <span>{result.username || result.name}</span>
+                <span className="truncate overflow-hidden block">{result.username || result.name}</span>
               </div>
             </li>
           ))}

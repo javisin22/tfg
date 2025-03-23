@@ -165,7 +165,7 @@ export default function ProfileScreen() {
 
 
   return (
-    <div className="h-[calc(100vh-120px)] overflow-y-auto p-6 space-y-6">
+    <div className="h-[calc(100vh-120px)] overflow-y-auto p-6">
       {/* Profile Section */}
       <section className="bg-white rounded-lg shadow p-6">
         <div className="flex flex-col items-center space-y-4">
@@ -307,8 +307,8 @@ export default function ProfileScreen() {
 
       {/* Edit Post Dialog */}
       {editingPost && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[60]">
-          <div className="bg-white rounded-lg p-6 space-y-4 w-[90%] max-w-lg">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[60] w-full h-screen min-h-[100vh]">
+          <div className="bg-white rounded-lg p-6 space-y-4 w-[90%] max-w-lg max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-medium text-gray-900">Edit Post</h3>
             <p className="text-sm text-gray-500">Make changes to your post here. Click save when you're done.</p>
             <textarea
