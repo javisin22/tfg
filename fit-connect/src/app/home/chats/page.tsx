@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { User, Users, SendHorizonal, Plus, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { User, Users, SendHorizonal, Plus, Loader2, ChevronDown, ChevronUp, AlertCircle, X } from 'lucide-react';
 import Image from 'next/image';
 import Loading from '../../../components/Loading';
 import { useChat } from '../../../contexts/ChatContext';
@@ -20,6 +20,8 @@ export default function ChatsScreen() {
   const [loading, setLoading] = useState(true);
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, chatId: null });
   const [showChatList, setShowChatList] = useState(true);
+  const [sendError, setSendError] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
   // Fetch chats and user info on mount
   useEffect(() => {
@@ -124,21 +126,29 @@ export default function ChatsScreen() {
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
-    console.log('Sending message:', newMessage);
+
+    setIsSending(true);
+    setSendError('');
+
     try {
       const response = await fetch(`/api/user/chats/sendMessage/${activeChat.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: newMessage }),
       });
+
       const data = await response.json();
+
       if (response.ok) {
         setNewMessage('');
       } else {
-        console.error(data.error);
+        setSendError(data.error || 'Failed to send message. Please try again.');
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      setSendError('Network error. Please check your connection and try again.');
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -394,6 +404,19 @@ export default function ChatsScreen() {
                   ))
                 )}
               </div>
+
+              {/* Error Message Display */}
+              {sendError && (
+                <div className="mx-2 sm:mx-4 mb-2 p-2 bg-red-100 border border-red-400 text-red-700 rounded-md flex items-center justify-between">
+                  <div className="flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">{sendError}</span>
+                  </div>
+                  <button onClick={() => setSendError('')} className="text-red-700 hover:text-red-900">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
 
               {/* Chat Input */}
               <div className="p-2 sm:p-4 border-t">

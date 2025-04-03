@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Search, Check } from 'lucide-react';
+import { X, Search, Check, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 
 export default function CreateGroupPopup({
@@ -17,6 +17,7 @@ export default function CreateGroupPopup({
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState<{ id: string; username: string; profilePicture?: string }[]>([]);
+  const [errors, setErrors] = useState<{ name?: string; members?: string }>({});
 
   useEffect(() => {
     // Fetch users from the API based on the search term
@@ -38,6 +39,16 @@ export default function CreateGroupPopup({
     }
   }, [searchTerm]);
 
+  useEffect(() => {
+    // Clear errors when inputs change
+    if (eventName && errors.name) {
+      setErrors((prev) => ({ ...prev, name: undefined }));
+    }
+    if (selectedUsers.length > 0 && errors.members) {
+      setErrors((prev) => ({ ...prev, members: undefined }));
+    }
+  }, [eventName, selectedUsers, errors]);
+
   const toggleUserSelection = (user: { id: string; username: string; profilePicture?: string }) => {
     setSelectedUsers((prevSelectedUsers) =>
       prevSelectedUsers.some((u) => u.id === user.id)
@@ -47,13 +58,26 @@ export default function CreateGroupPopup({
   };
 
   const handleCreateGroup = () => {
-    if (eventName && selectedUsers.length > 0) {
-      onCreateGroup(
-        eventName,
-        selectedUsers.map((user) => user.id)
-      );
-      onClose();
+    const newErrors: { name?: string; members?: string } = {};
+
+    if (!eventName.trim()) {
+      newErrors.name = 'Group name is required';
     }
+
+    if (selectedUsers.length === 0) {
+      newErrors.members = 'Please select at least one member';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    onCreateGroup(
+      eventName,
+      selectedUsers.map((user) => user.id)
+    );
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -68,13 +92,22 @@ export default function CreateGroupPopup({
           </button>
         </div>
         <div className="p-4">
-          <input
-            type="text"
-            placeholder="Group Name"
-            value={eventName}
-            onChange={(e) => setEventName(e.target.value)}
-            className="w-full p-2 border rounded mb-4 text-black"
-          />
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Group Name"
+              value={eventName}
+              onChange={(e) => setEventName(e.target.value)}
+              className={`w-full p-2 border rounded text-black ${errors.name ? 'border-red-500 bg-red-50' : ''}`}
+            />
+            {errors.name && (
+              <div className="mt-1 text-red-600 text-sm flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                {errors.name}
+              </div>
+            )}
+          </div>
+
           <div className="relative mb-4">
             <input
               type="text"
@@ -85,6 +118,7 @@ export default function CreateGroupPopup({
             />
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-black" />
           </div>
+
           <div className="max-h-60 overflow-y-auto mb-4">
             {users.map((user) => (
               <div
@@ -112,6 +146,14 @@ export default function CreateGroupPopup({
               </div>
             ))}
           </div>
+
+          {errors.members && (
+            <div className="mb-2 text-red-600 text-sm flex items-center">
+              <AlertCircle className="h-4 w-4 mr-1" />
+              {errors.members}
+            </div>
+          )}
+
           {selectedUsers.length > 0 && (
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-black mb-2">Selected Users</h3>

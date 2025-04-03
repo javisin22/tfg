@@ -2,16 +2,49 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { User, Mail, Lock } from 'lucide-react';
+import { User, Mail, Lock, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
-import { signup } from '@/login/actions';
+import { signup } from '../login/actions';
 
 export default function Signup() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
-  const [error, setError] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (formData) => {
+    setIsSubmitting(true);
+    setErrorMessage('');
+
+    // Basic validation
+    if (password !== repeatPassword) {
+      setErrorMessage("Passwords don't match");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!username.trim()) {
+      setErrorMessage('Username is required');
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      // Add username to formData
+      formData.append('username', username);
+
+      const result = await signup(formData);
+      if (result?.error) {
+        setErrorMessage(result.error);
+      }
+    } catch (error) {
+      setErrorMessage('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen">
@@ -24,63 +57,81 @@ export default function Signup() {
       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 mt-28">
         <Image src="/logo.jpeg" alt="Logo" width={150} height={150} />
       </div>
-      <form className="flex flex-col items-center w-full max-w-2xl mt-24">
-        <div className="flex w-full">
-          <div className="flex flex-col items-center w-1/2 pr-4">
-            <div className="mb-2 flex items-center w-full">
-              <User className="mr-2" />
-              <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="p-2 border rounded w-full text-black"
-              />
+
+      <div className="max-w-2xl mt-48 w-full px-4">
+        {errorMessage && (
+          <div className="mb-4 ml-7 p-3 bg-red-100 border border-red-400 text-red-700 rounded flex items-center justify-center">
+            <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        <form className="flex flex-col items-center w-full" action={handleSubmit}>
+          <div className="flex w-full flex-col md:flex-row">
+            <div className="flex flex-col items-center w-full md:w-1/2 md:pr-4">
+              <div className="mb-2 flex items-center w-full">
+                <User className="mr-2" />
+                <input
+                  type="text"
+                  name="username"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="p-2 border rounded w-full text-black"
+                  required
+                />
+              </div>
+              <div className="mb-2 flex items-center w-full">
+                <Mail className="mr-2" />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="p-2 border rounded w-full text-black"
+                  required
+                />
+              </div>
             </div>
-            <div className="mb-2 flex items-center w-full">
-              <Mail className="mr-2" />
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="p-2 border rounded w-full text-black"
-              />
+            <div className="hidden md:block border-r border-gray-300"></div>
+            <div className="flex flex-col items-center w-full md:w-1/2 md:pl-4">
+              <div className="mb-2 flex items-center w-full">
+                <Lock className="mr-2" />
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="p-2 border rounded w-full text-black"
+                  required
+                />
+              </div>
+              <div className="mb-2 flex items-center w-full">
+                <Lock className="mr-2" />
+                <input
+                  type="password"
+                  placeholder="Repeat Password"
+                  value={repeatPassword}
+                  onChange={(e) => setRepeatPassword(e.target.value)}
+                  className="p-2 border rounded w-full text-black"
+                  required
+                />
+              </div>
             </div>
           </div>
-          <div className="border-r border-gray-300"></div>
-          <div className="flex flex-col items-center w-1/2 pl-4">
-            <div className="mb-2 flex items-center w-full">
-              <Lock className="mr-2" />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="p-2 border rounded w-full text-black"
-              />
-            </div>
-            <div className="mb-2 flex items-center w-full">
-              <Lock className="mr-2" />
-              <input
-                type="password"
-                placeholder="Repeat Password"
-                value={repeatPassword}
-                onChange={(e) => setRepeatPassword(e.target.value)}
-                className="p-2 border rounded w-full text-black"
-              />
-            </div>
-          </div>
-        </div>
-        {error && <div className="text-red-500 mt-2 w-full text-center">{error}</div>}
-        <button
-          type="submit"
-          formAction={signup}
-          className="mt-12 py-3 px-16 bg-blue-500 text-white rounded hover:bg-blue-600 font-bold"
-        >
-          Create Account
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`mt-12 py-3 px-16 bg-blue-500 text-white rounded hover:bg-blue-600 font-bold ${
+              isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+            }`}
+          >
+            {isSubmitting ? 'Creating Account...' : 'Create Account'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

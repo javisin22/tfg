@@ -22,7 +22,7 @@ export async function login(formData: FormData) {
 
   if (error) {
     console.error('Error logging in:', error);
-    redirect('/error');
+    return {error: error.message};
   }
 
   console.log({ session });
@@ -36,7 +36,7 @@ export async function login(formData: FormData) {
 
   if (userError) {
     console.error('Error fetching user:', userError);
-    redirect('/error');
+    return { error: 'Error fetching user profile' };
   }
 
   cookies().set('username', user?.username, { path: '/' });
@@ -48,19 +48,45 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = createClient();
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  };
+  // Get form data
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+  const username = formData.get('username') as string;
 
-  const { error } = await supabase.auth.signUp(data);
-
-  if (error) {
-    console.error('Error signing up:', error);
-    redirect('/error');
+  if (!email || !password || !username) {
+    return { error: 'Email, password and username are required' };
   }
+
+  // First, register the user with Supabase Auth
+  const { error: authError, data } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (authError) {
+    console.error('Error signing up:', authError);
+    return { error: authError.message };
+  }
+
+  // Then add the username to the users table
+  if (data.user) {
+    const { error: profileError } = await supabase.from('users').insert([
+      {
+        id: data.user.id,
+        email: email,
+        username: username,
+        role: 'user',
+      },
+    ]);
+
+    if (profileError) {
+      console.error('Error creating profile:', profileError);
+      return { error: 'Failed to create user profile' };
+    }
+  }
+
+  // Set the username cookie
+  cookies().set('username', username, { path: '/' });
 
   revalidatePath('/', 'layout');
   redirect('/');
