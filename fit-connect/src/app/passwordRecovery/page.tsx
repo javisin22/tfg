@@ -9,6 +9,7 @@ export default function RecoverPassword() {
   const [email, setEmail] = useState('');
   const [showPopup, setShowPopup] = useState(false);
   const [error, setError] = useState('');
+  const [sentEmail, setSentEmail] = useState('');
 
   const handlePasswordRecovery = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,21 +19,41 @@ export default function RecoverPassword() {
     }
     setError('');
 
-    const res = await fetch('/api/auth/recover', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email }),
-    });
+    try {
+      const res = await fetch('/auth/recover', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
 
-    const data = await res.json();
-
-    if (res.ok) {
-      setEmail('');
-      setShowPopup(true);
-    } else {
-      setError(data.error);
+      // Check if the response is OK before trying to parse JSON
+      if (res.ok) {
+        try {
+          await res.json(); // Try to parse JSON but we don't actually need it
+          setSentEmail(email); // Store the email for the popup
+          setEmail('');
+          setShowPopup(true);
+        } catch (jsonError) {
+          console.error('Error parsing JSON response:', jsonError);
+          setSentEmail(email); // Store the email for the popup
+          setShowPopup(true); // Still show success if the status was OK
+        }
+      } else {
+        // Handle error response
+        if (res.headers.get('content-type')?.includes('application/json')) {
+          // Only try to parse as JSON if the content type is correct
+          const errorData = await res.json();
+          setError(errorData.error || 'An error occurred. Please try again.');
+        } else {
+          // If not JSON, use the status text
+          setError(`Error: ${res.status} ${res.statusText || 'Something went wrong'}`);
+        }
+      }
+    } catch (fetchError) {
+      console.error('Network error:', fetchError);
+      setError('Network error. Please check your connection and try again.');
     }
   };
 
@@ -78,7 +99,7 @@ export default function RecoverPassword() {
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-lg font-semibold mb-4 text-black">Verification Email Sent</h2>
             <p className="mb-4 text-black">
-              A verification email has been sent to <span className="underline">{email}</span>.
+              A verification email has been sent to <span className="underline">{sentEmail}</span>.
             </p>
             <button onClick={closePopup} className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600">
               Close
