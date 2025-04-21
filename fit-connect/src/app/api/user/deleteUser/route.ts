@@ -1,30 +1,30 @@
 import { createClient } from '@/utils/supabase/server';
+import { supabaseAdmin } from '@/utils/supabase/admin';
 import { NextResponse } from 'next/server';
+import { getUserInfo } from '@/utils/user';
+
 
 // /api/user/deleteUser
 export async function POST(request: Request) {
   try {
     const supabase = createClient();
 
+    const userData = await getUserInfo();
+    const userId = userData.id;
+
     // Get user session data
     const { data: authData, error: authError } = await supabase.auth.getUser();
-    if (authError) throw new Error('Error fetching user session');
+    if (authError) throw new Error('Error fetching user session: ' + authError.message);
+    const userIdAuth = authData?.user?.id;
 
-    const userEmail = authData?.user?.email;
-    const userId = authData?.user?.id;
+    // 1. Delete the row in public.users via the service role
+    await supabaseAdmin.from('users').delete().eq('id', userId);
 
-    // Delete user details from the database
-    const { error: userError } = await supabase.from('users').delete().eq('email', userEmail);
-    if (userError) throw new Error(userError.message);
-
-    // 🎃 Delete related information from other tables: posts, comments, likes?, chats, messages, workouts, events, etc.
-
-    // Delete user authentication
-    const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
-    if (authDeleteError) throw new Error('Error deleting user authentication');
+    // 2. Delete the auth record
+    await supabaseAdmin.auth.admin.deleteUser(userIdAuth);
 
     return NextResponse.json({ message: 'User account deleted successfully' }, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

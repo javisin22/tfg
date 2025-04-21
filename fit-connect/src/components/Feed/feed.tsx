@@ -1,27 +1,19 @@
 'use client';
 
-import { Heart, MessageSquareMore, Plus } from 'lucide-react';
+import { Heart, MessageSquareMore, Plus, User as UserIcon } from 'lucide-react';
 import Cookies from 'js-cookie';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import Loading from '../Loading';
-import { Post, Comment } from '../../types';
+import { Post } from '../../types';
 
 export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
-  const [, setUsername] = useState('');
+  // const [, setUsername] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
-  const [newComment, setNewComment] = useState<Comment>('');
+  const [newComment, setNewComment] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
-
-  const emptyComment: Comment = {
-    id: '',
-    postId: '',
-    userId: '',
-    content: '',
-    postedAt: '',
-  };
 
   // Fetch posts from the API endpoint
   useEffect(() => {
@@ -29,7 +21,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
       try {
         const res = await fetch('/api/posts/info');
         const { posts, likedPosts } = await res.json();
-        console.log(posts);
+        console.log("Posts:", posts);
         setPosts(posts || []);
         setLikedPosts(likedPosts || []);
       } catch (error) {
@@ -38,7 +30,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
         setLoading(false);
       }
     }
-    setUsername(Cookies.get('username') || '');
+    // setUsername(Cookies.get('username') || '');
     fetchPosts();
   }, []);
 
@@ -72,7 +64,7 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
         )
       );
 
-      setNewComment(emptyComment); // Clear the input field
+      setNewComment(''); // Clear the input field
     } catch (error) {
       console.error('Error posting comment:', error);
     }
@@ -130,13 +122,17 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
             <div key={post.id} className="border rounded-lg shadow-md p-2 sm:p-4 bg-white">
               <div className="flex items-center mb-2 sm:mb-4">
                 {/* Profile picture & username */}
-                <Image
-                  src={post.users.profilePicture}
-                  alt={`${post.users.username}'s profile picture.`}
-                  width="48"
-                  height="48"
-                  className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full object-cover"
-                />
+                {post.users.profilePicture ? (
+                  <Image
+                    src={post.users.profilePicture}
+                    alt={`${post.users.username}'s profile picture.`}
+                    width={48}
+                    height={48}
+                    className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <UserIcon className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-gray-400 rounded-full bg-gray-100 p-1" />
+                )}
                 <div className="ml-2 sm:ml-4">
                   <p className="text-xs sm:text-sm font-medium text-black">{post.users.username}</p>
                   <p className="text-xs text-gray-500">{formatDistanceToNow(new Date(post.postedAt), { addSuffix: true })}</p>
@@ -183,13 +179,17 @@ export default function Feed({ onCreatePost }: { onCreatePost: () => void }) {
                   <div className="max-h-40 sm:max-h-60 overflow-y-auto">
                     {post.comments.map((comment, index) => (
                       <div key={index} className="flex items-start space-x-1 sm:space-x-2 mb-1.5 sm:mb-2">
-                        <Image
-                          src={comment.users.profilePicture}
-                          alt={`${comment.users.username}'s profile picture`}
-                          width="32"
-                          height="32"
-                          className="h-6 w-6 sm:h-8 sm:w-8 rounded-full object-cover"
-                        />
+                        {comment.users.profilePicture ? (
+                          <Image
+                            src={comment.users.profilePicture}
+                            alt={`${comment.users.username}'s profile picture`}
+                            width={32}
+                            height={32}
+                            className="h-6 w-6 sm:h-8 sm:w-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <UserIcon className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 rounded-full bg-gray-100 p-1" />
+                        )}
                         <div className="flex-1 overflow-wrap break-word">
                           <p className="text-xs sm:text-sm font-medium text-black">{comment.users.username}</p>
                           <p className="text-xs sm:text-sm text-gray-700">{comment.content}</p>

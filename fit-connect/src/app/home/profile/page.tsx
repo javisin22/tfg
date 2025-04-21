@@ -40,9 +40,10 @@ export default function ProfileScreen() {
     async function fetchUserPosts() {
       try {
         const res = await fetch('/api/user/posts/getPosts');
-        const { posts } = await res.json();
+        const { posts, likedPosts } = await res.json();
         console.log('User Posts:', posts);
         setUserPosts(posts);
+        setLikedPosts(likedPosts || []);
       } catch (error) {
         console.error('Error fetching user posts:', error);
       }
@@ -283,13 +284,17 @@ export default function ProfileScreen() {
               <h4 className="text-sm font-medium text-black mb-2">Comments</h4>
               {post.comments.map((comment, index) => (
                 <div key={index} className="flex items-start space-x-2 mb-2">
-                  <Image
-                    src={comment.users.profilePicture}
-                    alt={`${comment.users.username}'s profile picture`}
-                    width="32"
-                    height="32"
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
+                  {comment.users.profilePicture ? (
+                    <Image
+                      src={comment.users.profilePicture}
+                      alt={`${comment.users.username}'s profile picture`}
+                      width={32}
+                      height={32}
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-8 w-8 text-gray-400 rounded-full bg-gray-100 p-1" />
+                  )}
                   <div>
                     <p className="text-sm font-medium text-black">{comment.users.username}</p>
                     <p className="text-sm text-gray-700">{comment.content}</p>

@@ -2,65 +2,51 @@ import { getUserInfo } from '@/utils/user';
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
-// GET request for getting the posts of the user logged in
 export async function GET(req: Request) {
   try {
     const userData = await getUserInfo();
     const supabase = createClient();
 
-    const { data, error } = await supabase
+    // fetch the user's posts + nested comments & users
+    const { data: posts, error: postsError } = await supabase
       .from('posts')
       .select(
         `
         *,
         comments (
           *,
-          users (
-            username,
-            profilePicture
-          )
+          users ( username, profilePicture )
         )
       `
       )
       .eq('userId', userData.id);
+    if (postsError) throw postsError;
 
-    if (error) {
-      console.log('error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    const posts = data || [];
-
-    // Retrieve likes count for each post
-    const postIds = posts.map((post: { id: string }) => post.id);
-    const { data: likesData, error: likesError } = await supabase
-      .from('post_likes')
-      .select('postId')
-      .in('postId', postIds);
-    
-    if (likesError) {
-      console.log('likesError:', likesError);
-      return NextResponse.json({ error: likesError.message }, { status: 500 });
-    }
-
-    // Count likes manually: result is an object mapping post IDs to like counts
-    const likesCount = (likesData || []).reduce((acc: Record<string, number>, like: { postId: string }) => {
-      acc[like.postId] = (acc[like.postId] || 0) + 1;
+    // count likes per post
+    const postIds = posts.map((p) => p.id);
+    const { data: allLikes, error: likesError } = await supabase.from('post_likes').select('postId').in('postId', postIds);
+    if (likesError) throw likesError;
+    const likesCount = (allLikes || []).reduce<Record<string, number>>((acc, l) => {
+      acc[l.postId] = (acc[l.postId] || 0) + 1;
       return acc;
     }, {});
-
-    // Attach the likes count to each post
-    const postsWithLikes = posts.map((post: any) => ({
-      ...post,
-      likes: likesCount[post.id] || 0,
+    const postsWithLikes = (posts || []).map((p) => ({
+      ...p,
+      likes: likesCount[p.id] || 0,
     }));
 
-    return NextResponse.json({ posts: postsWithLikes }, { status: 200 });
-  } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
-    }
+    // fetch which of these posts the current user has liked
+    const { data: userLikes, error: userLikesError } = await supabase
+      .from('post_likes')
+      .select('postId')
+      .eq('userId', userData.id)
+      .in('postId', postIds);
+    if (userLikesError) throw userLikesError;
+    const likedPosts = (userLikes || []).map((l) => l.postId);
+
+    return NextResponse.json({ posts: postsWithLikes, likedPosts }, { status: 200 });
+  } catch (err: any) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

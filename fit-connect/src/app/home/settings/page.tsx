@@ -34,9 +34,16 @@ export default function SettingsScreen() {
       .then((res) => res.json())
       .then((data) => {
         if (data.user) {
-          const { username, profilePicture, biography, weight, height } = data.user;
-          setFormData({ ...formData, username, profilePicture, biography, weight, height });
-          setImagePreview(profilePicture);
+          const { username = '', profilePicture = '', biography = '', weight, height } = data.user;
+          setFormData((prev) => ({
+            ...prev,
+            username,
+            profilePicture,
+            biography,
+            weight: weight != null ? String(weight) : '',
+            height: height != null ? String(height) : '',
+          }));
+          setImagePreview(profilePicture || null);
         }
       })
       .catch((error) => {
@@ -135,22 +142,27 @@ export default function SettingsScreen() {
   };
 
   const handleDeleteAccount = async () => {
-    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      try {
-        const response = await fetch('/api/user/deleteUser', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
+    if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.'))
+    { return; }
+    try {
+      const response = await fetch('/api/user/deleteUser', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-        if (!response.ok) {
-          throw new Error('Error deleting account');
-        }
+      const payload = await response.json();
 
-        const data = await response.json();
-        window.location.href = '/login';
-      } catch (error) {
-        console.error('Error deleting account:', error);
+      if (!response.ok) {
+        console.error('Delete user failed:', payload.error);
+        alert(payload.error || `Error: ${response.status}`);
+        return;
       }
+
+      // seccess => redirect to login page
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Network or runtime error deleting account:', error);
+      alert('Unexpected error - check console for details.');
     }
   };
 
@@ -165,19 +177,22 @@ export default function SettingsScreen() {
 
   // Toggles between height units (cm <-> feet and inches)
   const toggleHeightUnit = () => {
-    setIsHeightInCm(!isHeightInCm);
     if (isHeightInCm) {
-      const heightInCm = Number(formData.height);
-      const heightInFeetInches = cmToFeetInches(heightInCm);
-      setFormData({ ...formData, height: heightInFeetInches });
+      const cm = Number(formData.height) || 0;
+      const feetInStr = cmToFeetInches(cm);
+      setFormData((p) => ({ ...p, height: String(feetInStr) }));
     } else {
-      const [feetStr, inchesStr] = formData.height.split('ft');
-      const feet = Number(feetStr);
-      const inches = Number(inchesStr.replace('in', ''));
-      const heightInCm = feetInchesToCm(feet, inches);
-      setFormData({ ...formData, height: heightInCm });
+      const [ft, rest] = formData.height.split('ft');
+      const feet = Number(ft) || 0;
+      const inches = Number(rest?.replace('in', '')) || 0;
+      const cm = feetInchesToCm(feet, inches);
+      setFormData((p) => ({ ...p, height: String(cm) }));
     }
+    setIsHeightInCm((v) => !v);
+    setHasUnsavedChanges(true);
   };
+
+  const safeValue = (v: string | number | undefined | null) => (v === undefined || v === null ? '' : String(v));
 
   return (
     <div className="h-[calc(100vh-120px)] overflow-y-auto">
@@ -235,7 +250,7 @@ export default function SettingsScreen() {
               </label>
               <input
                 id="username"
-                value={formData.username}
+                value={safeValue(formData.username)}
                 onChange={handleInputChange}
                 placeholder="Current username"
                 className="w-full p-1.5 sm:p-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
@@ -248,7 +263,7 @@ export default function SettingsScreen() {
               </label>
               <input
                 id="biography"
-                value={formData.biography}
+                value={safeValue(formData.biography)}
                 onChange={handleInputChange}
                 placeholder="Current biography"
                 className="w-full p-1.5 sm:p-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
@@ -263,7 +278,7 @@ export default function SettingsScreen() {
                 <input
                   id="weight"
                   type="number"
-                  value={formData.weight}
+                  value={safeValue(formData.weight)}
                   onChange={handleInputChange}
                   className="w-full sm:w-24 p-1.5 sm:p-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
                 />
@@ -283,7 +298,7 @@ export default function SettingsScreen() {
                 <input
                   id="height"
                   type="text"
-                  value={formData.height}
+                  value={safeValue(formData.height)}
                   onChange={handleInputChange}
                   className="w-full sm:w-24 p-1.5 sm:p-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black"
                 />
@@ -311,7 +326,7 @@ export default function SettingsScreen() {
                 <input
                   id="currentPassword"
                   type={showCurrentPassword ? 'text' : 'password'}
-                  value={formData.currentPassword}
+                  value={safeValue(formData.currentPassword)}
                   onChange={handleInputChange}
                   placeholder="Current password"
                   className="w-full p-1.5 sm:p-2 text-xs sm:text-sm text-black border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -334,7 +349,7 @@ export default function SettingsScreen() {
                 <input
                   id="newPassword"
                   type={showNewPassword ? 'text' : 'password'}
-                  value={formData.newPassword}
+                  value={safeValue(formData.newPassword)}
                   onChange={handleInputChange}
                   placeholder="New password"
                   className="w-full p-1.5 sm:p-2 text-xs sm:text-sm text-black border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
