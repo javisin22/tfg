@@ -8,7 +8,7 @@ import Logout from '../../components/Logout';
 import SearchBar from '../../components/SearchBar';
 import { ChatProvider } from '../../contexts/ChatContext';
 import { EventsProvider } from '../../contexts/EventsContext';
-import Cookies from 'js-cookie';
+// import Cookies from 'js-cookie';
 
 export default function Layout({
   children,

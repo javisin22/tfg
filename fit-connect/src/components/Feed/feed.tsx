@@ -1,7 +1,7 @@
 'use client';
 
 import { Heart, MessageSquareMore, Plus, User as UserIcon } from 'lucide-react';
-import Cookies from 'js-cookie';
+// import Cookies from 'js-cookie';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';

@@ -44,7 +44,8 @@ export async function GET() {
         )
       `
       )
-      .in('userId', userIds);
+      .in('userId', userIds)
+      .order('postedAt', { ascending: false });
 
     if (postsError) {
       console.error('Error fetching posts:', postsError);
